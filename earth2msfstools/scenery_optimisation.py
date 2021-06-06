@@ -1,6 +1,16 @@
+import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess, importlib
+from math import radians, cos, sin, asin, sqrt
+from xml.dom.minidom import *
+from mathutils import Vector 
+from xml.dom.minidom import *
+from os.path import dirname, join, normpath, sep
+import xml.etree.ElementTree as ET
+from .config import conf, JPG_FORMAT, PNG_FORMAT
+
 ######################################################
 # script settings
 ######################################################
+output_texture_format_pattern = "*." + conf.output_texture_format
 
 # constants
 CEND = "\033[0m"
@@ -15,8 +25,6 @@ KO = "KO"
 EOL = "\n"
 NODE_JS_SCRIPT = "retrievepos.js"
 MSFS_BUILD_EXE_FILE = "fspackagetool.exe"
-JPG_FORMAT = "jpg"
-PNG_FORMAT = "png"
 JPG_EXTENSION = "." + JPG_FORMAT
 PNG_EXTENSION = "." + PNG_FORMAT
 JPG_PATTERN = "*." + JPG_FORMAT
@@ -24,59 +32,11 @@ PNG_PATTERN = "*." + PNG_FORMAT
 JPG_COMPRESSION_RATIO = 0.75
 BASE_COLOR_INDEX = 0
 
-# reduce number of texture files (Lily Texture Packer addon is necessary https://gumroad.com/l/DFExj)
-bake_textures_enabled = True
-
-# folder where the scenery projects are placed
-projects_folder = "E:\\MSFSProjects"
-
-# folder of the scenery project you want to optimize
-project_name = "My_project"
-
-# folder that contains the node js script that retrieves the Google Earth coords
-node_js_folder = "C:\\MSFS SDK"
-
-# folder that contains the fspackagetool exe that builds the MSFS packages
-fspackagetool_folder = "C:\\MSFS SDK\\Tools\\bin"
-
-# minsize values per LOD, starting from a minLod of 17 (from the less detailed lod to the most detailed)
-target_lods = [0, 15, 50, 70, 80, 90, 100]
-# if you use a minLod of 16, consider using this array instead
-# target_lods = [0, 5, 15, 50, 70, 80, 90, 100]
-
-# name of the xml file that embeds the project definition (by default, project_name.xml or author_name+project_name.xml)
-project_file_name = "author_name-project_name.xml"
-
-# name of the xml file that embeds the tile descriptions (by default, objects.xml)
-scene_file_name = "objects.xml"
-
-# name of the xml file that embeds the package definitions (by default, project_name.xml or author_name+project_name.xml)
-package_definitions_file_name = "author_name-project_name.xml"
-
-# author name
-author_name = "author_name"
-
-# enable the package compilation when the script has finished
-build_package_enabled = True
-
-# output format of the texture files (jpg or png)
-output_texture_format = PNG_FORMAT
-output_texture_format_pattern = "*." + output_texture_format
-
 #######################****************###########################
-
-import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess
-from math import radians, cos, sin, asin, sqrt
-from xml.dom.minidom import *
-from mathutils import Vector 
-from xml.dom.minidom import *
-from os.path import dirname, join, normpath
-from bpy.app import binary_path_python
-import xml.etree.ElementTree as ET
 
 class ScriptError(Exception):      
     def __init__(self, value):
-       self.value = CREDBG + value + CEND + EOL
+        self.value = CREDBG + value + CEND + EOL
     def __str__(self):
         return repr(CREDBG + self.value + CEND + EOL)
 
@@ -86,38 +46,38 @@ os.system("cls")
 # initial directory 
 cwd = os.path.dirname(__file__)
 
-project_folder = projects_folder + "\\" + project_name
+project_folder = join(conf.projects_folder, conf.project_name)
 # project file name fallback
-if not os.path.isfile(project_folder + "\\" + project_file_name):
-    if os.path.isfile(project_folder + "\\" + author_name.lower() + "-" + project_name.lower() + ".xml"):
-        project_file_name = project_folder + "\\" + author_name.lower() + "-" + project_name.lower() + ".xml"
+if not os.path.isfile(join(project_folder, conf.project_file_name)):
+    if os.path.isfile(join(project_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))):
+        conf.project_file_name = join(project_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))
     else:
-        project_file_name = project_name.lower() + ".xml"
+        conf.project_file_name = conf.project_name.lower() + ".xml"
     
 # package definitions folder
-package_definitions_folder = project_folder + "\\PackageDefinitions\\"
+package_definitions_folder = join(project_folder, "PackageDefinitions")
 
 # package definitions file name fallback
-if not os.path.isfile(package_definitions_folder + package_definitions_file_name):
-    if os.path.isfile(package_definitions_folder + author_name.lower() + "-" + project_name.lower() + ".xml"):
-        package_definitions_file_name = author_name.lower() + "-" + project_name.lower() + ".xml"
+if not os.path.isfile(join(package_definitions_folder, conf.package_definitions_file_name)):
+    if os.path.isfile(join(package_definitions_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))):
+        conf.package_definitions_file_name = "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower())
     else:
-        package_definitions_file_name = project_name.lower() + ".xml"
+        conf.package_definitions_file_name = conf.project_name.lower() + ".xml"
         
 # objects folder
-objects_folder = project_folder + "\\PackageSources\\modelLib\\"
+objects_folder = join(project_folder, "PackageSources", "modelLib")
 # scene folder
-scene_folder = project_folder + "\\PackageSources\\scene\\"
+scene_folder = join(project_folder, "PackageSources", "scene")
 # backup folder
-backup_folder = project_folder + "\\backup"
+backup_folder = join(project_folder, "backup")
 # backup fps_modelLib folder
-backup_modelLib_folder = backup_folder + "\\modelLib"
+backup_modelLib_folder = join(backup_folder, "modelLib")
 # backup scene folder
-backup_scene_folder = backup_folder + "\\scene"
+backup_scene_folder = join(backup_folder, "scene")
 # positions folder
-positions_folder = project_folder + "\\positions"
+positions_folder = join(project_folder, "positions")
 # MSFS temp folder
-msfs_temp_folder = project_folder + "\\_PackageInt"
+msfs_temp_folder = join(project_folder, "_PackageInt")
 
 ######################################################
 # colored print methods
@@ -139,35 +99,35 @@ def check_configuration():
     warning_msg = "Configuration warning ! "
     
     # check if the projects folder exists
-    if not os.path.isdir(projects_folder):
-        pr_ko_red   ("projects_folder value              ")
-        raise ScriptError(error_msg + "The folder containing your projects (" + projects_folder + ") was not found. Please check the projects_folder value")
-    pr_ok_green     ("projects_folder value              ")
+    if not os.path.isdir(conf.projects_folder):
+        pr_ko_red   ("conf.projects_folder value              ")
+        raise ScriptError(error_msg + "The folder containing your projects (" + conf.projects_folder + ") was not found. Please check the conf.projects_folder value")
+    pr_ok_green     ("conf.projects_folder value              ")
         
     # check the projects name
     if not os.path.isdir(project_folder):
-        pr_ko_red   ("project_name value                 ")
-        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the project_name value")
-    pr_ok_green     ("project_name value                 ")    
-             
+        pr_ko_red   ("conf.project_name value                 ")
+        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the conf.project_name value")
+    pr_ok_green     ("conf.project_name value                 ")    
+        
     # check if the project file is reachable
-    if not os.path.isfile(project_folder + "\\" + project_file_name):
-        pr_ko_red   ("project_file_name value            ")
-        raise ScriptError(error_msg + "Project file (" + project_folder + "\\" + project_file_name + ") not found. Please check the project_file_name value")
-    pr_ok_green     ("project_file_name value            ")
+    if not os.path.isfile(join(project_folder, conf.project_file_name)):
+        pr_ko_red   ("conf.project_file_name value            ")
+        raise ScriptError(error_msg + "Project file (" + join(project_folder, conf.project_file_name) + ") not found. Please check the conf.project_file_name value")
+    pr_ok_green     ("conf.project_file_name value            ")
         
     # check if the retrievepos.js file is reachable
-    if not os.path.isfile(node_js_folder + "\\" + NODE_JS_SCRIPT):
-        pr_ko_red   ("node_js_folder value               ")
-        raise ScriptError(error_msg + "Node js script " + NODE_JS_SCRIPT + " not found. Please check the node_js_folder value") 
-    pr_ok_green     ("node_js_folder value               ")
+    if not os.path.isfile(join(conf.node_js_folder, NODE_JS_SCRIPT)):
+        pr_ko_red   ("conf.node_js_folder value               ")
+        raise ScriptError(error_msg + "Node js script " + NODE_JS_SCRIPT + " not found. Please check the conf.node_js_folder value") 
+    pr_ok_green     ("conf.node_js_folder value               ")
         
     # check if the fspackagetool.exe file is reachable
-    if not os.path.isfile(fspackagetool_folder + "\\" + MSFS_BUILD_EXE_FILE):
-        pr_ko_orange("fspackagetool_folder value         ")
-        build_package_enabled = False
+    if not os.path.isfile(join(conf.fspackagetool_folder, MSFS_BUILD_EXE_FILE)):
+        pr_ko_orange("conf.fspackagetool_folder value         ")
+        conf.build_package_enabled = False
         print(CORANGE + warning_msg + MSFS_BUILD_EXE_FILE + " bin file not found. Automatic package building disabled" + CEND + EOL)
-    pr_ok_green     ("fspackagetool_folder value         ")
+    pr_ok_green     ("conf.fspackagetool_folder value         ")
         
     # check if the package definitions folder exists
     if not os.path.isdir(package_definitions_folder):
@@ -176,10 +136,10 @@ def check_configuration():
     pr_ok_green     ("package_definitions_folder value   ")
     
     # check if the package definitions file name is reachable
-    if not os.path.isfile(package_definitions_folder + package_definitions_file_name):
-        pr_ko_red   ("package_definitions_file_name value")
-        raise ScriptError(error_msg + "Package definitions file (" + package_definitions_folder + package_definitions_file_name + ") not found. Please check the package_definitions_file_name value")
-    pr_ok_green     ("package_definitions_file_name value")
+    if not os.path.isfile(join(package_definitions_folder, conf.package_definitions_file_name)):
+        pr_ko_red   ("conf.package_definitions_file_name value")
+        raise ScriptError(error_msg + "Package definitions file (" + join(package_definitions_folder, conf.package_definitions_file_name) + ") not found. Please check the conf.package_definitions_file_name value")
+    pr_ok_green     ("conf.package_definitions_file_name value")
 
 def check_package_sources_configuration():
     error_msg = "Configuration error found ! "
@@ -197,10 +157,10 @@ def check_package_sources_configuration():
     pr_ok_green     ("scene_folder value                 ")
     
     # check if the description file of the scene is reachable
-    if not os.path.isfile(scene_folder + scene_file_name):
-        pr_ko_red   ("scene_file_name value              ")
-        raise ScriptError(error_msg + "Description file of the scene (" + scene_folder + scene_file_name + ") not found. Please check the scene_file_name value")
-    pr_ok_green     ("scene_file_name value              ")
+    if not os.path.isfile(join(scene_folder, conf.scene_file_name)):
+        pr_ko_red   ("conf.scene_file_name value              ")
+        raise ScriptError(error_msg + "Description file of the scene (" + join(scene_folder, conf.scene_file_name) + ") not found. Please check the conf.scene_file_name value")
+    pr_ok_green     ("conf.scene_file_name value              ")
         
     # check if the folder containing the textures of the scene exists
     if not os.path.isdir(textures_folder):
@@ -244,7 +204,7 @@ def removeObjectFromMemory(passedName):
             print ("removeObjectFromMemory: Unable to remove OBJECT because it still has [" + str(ob.users) + "] users.") 
     else:
         # We could not fetch it, it does not exist in memory, essentially removed.
-        print("We could not fetch OB [%s], it does not exist in memory, essentially removed." % passedName)
+        print("We could not fetch OB [%s], it does not exist in memory, essentially removed." % (passedName,))
         result = True
     return result 
     
@@ -278,7 +238,7 @@ def removeMeshFromMemory(passedName):
             print ("removeMeshFromMemory: Unable to remove MESH because it still has [" + str(mesh.users) + "] users.")
     else:
         # We could not fetch it, it does not exist in memory, essentially removed.
-        print("We could not fetch MESH [%s], it does not exist in memory, essentially removed." % passedName)
+        print("We could not fetch MESH [%s], it does not exist in memory, essentially removed." % (passedName,))
         result = True
     return result
     
@@ -412,7 +372,7 @@ def fix_texture_links():
     
     for gltf_file in glob.glob("*.gltf"):            
         # replace texture files format refs
-        if output_texture_format == PNG_FORMAT:
+        if conf.output_texture_format == PNG_FORMAT:
             fix_texture_files_links(gltf_file, JPG_FORMAT, PNG_FORMAT)
         else:
             fix_texture_files_links(gltf_file, PNG_FORMAT, JPG_FORMAT)
@@ -480,11 +440,11 @@ def check_baked_textures_optimisation_tag(gltf_file):
 def check_backed_texture_files(dir, file_name):
     os.chdir(textures_folder)
     
-    for texture_file in glob.glob(dir + "\\" + file_name + "_" + output_texture_format_pattern):
+    for texture_file in glob.glob(join(dir, file_name + "_" + output_texture_format_pattern)):
         if os.path.isfile(texture_file):
             os.chdir(objects_folder)
             return True 
-             
+            
     os.chdir(objects_folder)
     return False
 
@@ -558,12 +518,12 @@ def center_origin(obj):
 # Retrieve Google Earth position data methods
 ######################################################
 def retrieve_first_tile_old_position():
-    xml_file = backup_scene_folder + scene_file_name 
+    xml_file = backup_scene_folder + conf.scene_file_name 
     
-    if os.path.isfile(backup_scene_folder + scene_file_name):
+    if os.path.isfile(backup_scene_folder + conf.scene_file_name):
         tree = ET.parse(xml_file)
         root = tree.getroot()
-         
+        
         for scenery_object in root.findall("./SceneryObject"):
             lat = scenery_object.get("lat")
             lon = scenery_object.get("lon")
@@ -592,9 +552,9 @@ def retrieve_pos_file_to_treat(objects_root):
         print("xml file: ", os.path.basename(xml_file))
         file_name = os.path.splitext(xml_file)[0]
         pos_name = file_name + ".pos"
-        print("pos_file: ", positions_folder + "\\" + file_name + ".pos")
+        print("pos_file: ", join(positions_folder, file_name + ".pos"))
         
-        if not os.path.isfile(positions_folder + "\\" + file_name + ".pos"):
+        if not os.path.isfile(join(positions_folder, file_name + ".pos")):
             tree = ET.parse(xml_file)
             root = tree.getroot()
             guid  = root.get("guid")
@@ -615,13 +575,13 @@ def retrieve_pos_file_to_treat(objects_root):
                 lon = scenery_object.get("lon")
                 print("lat: ", lat)
                 print("lon: ", lon)
-           
+
             data.append({'id': file_name, 'lat': lat, 'lon': lon}) 
             retrieve_pos(data)
             data = [] 
     
     return data
-     
+    
 def retrieve_pos(data):        
     ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -629,9 +589,9 @@ def retrieve_pos(data):
     input_fd, output_fd = os.pipe()
 
     # start several subprocesses
-    processes = [subprocess.Popen(["node", node_js_folder + "\\" + NODE_JS_SCRIPT, obj['id'], positions_folder, obj['lat'], obj['lon']], stdout=output_fd,
-                       close_fds=ON_POSIX) # close input_fd in children
-                 for obj in data]
+    processes = [subprocess.Popen(["node", join(conf.node_js_folder, NODE_JS_SCRIPT), obj['id'], positions_folder, obj['lat'], obj['lon']], stdout=output_fd,
+                                  close_fds=ON_POSIX) # close input_fd in children
+                for obj in data]
     os.close(output_fd) # close unused end of the pipe
 
     # read output line by line as soon as it is available
@@ -648,46 +608,33 @@ def retrieve_pos(data):
 # XHR2 node js module installation
 ######################################################  
 def install_xhr2():
-    os.chdir(node_js_folder)
-    error_msg = "xhr2 node js module installation failed"
+    os.chdir(conf.node_js_folder)
     
     try: 
         subprocess.run("npm install xhr2", shell=True, check=True)
     except:
-        raise ScriptError(error_msg)
+        raise ScriptError("xhr2 node js module installation failed")
 
 ######################################################
 # Python lib installation
 ######################################################    
 def install_python_lib(lib):
-    # path to blender python.exe
-    python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
-    # path to other python folders
-    os_python_path = os.path.expandvars(R"%USERPROFILE%\AppData\Roaming\Python")
-    python_path = bpy.app.binary_path_python
-    # path to blender python lib folders
-    python_lib_path = normpath(join(dirname(bpy.app.binary_path_python), '..', '..', 'python\\lib'))
-    error_msg = "pip and " + lib + " installation failed in blender lib folder. Please consider running this script as an administrator"
-
-    # print(python_lib_path)
-    # print(os_python_path)     
+    error_msg = """{lib} installation failed. Please install it as administrator with the following commands:
+    {python} -m ensurepip --upgrade
+    {python} -m pip install {lib}""".format(python=sys.executable, lib=lib)
+    success_msg = "pip and " + lib + " correctly installed in blender lib folder"
     
-    if os.path.isdir(python_lib_path + "\\pip") and os.path.isdir(python_lib_path + "\\PIL") and glob.glob(python_lib_path + "\\Pillow*"):
-        print("pip and " + lib + " correctly installed in blender lib folder")
-        return
-    
-    try: 
-        # install or upgrade pip
-        subprocess.run([python_exe, "-m", "ensurepip"], shell=True, check=True)
-        subprocess.run([python_exe, "-m", "pip", "install", "--upgrade", "pip", "--target", python_lib_path], shell=True, check=True)
-         
-        # install required packages
-        subprocess.run([python_exe, "-m", "pip", "install", "--upgrade", lib, "--target", python_lib_path], shell=True, check=True)
-    except:
-        raise ScriptError(error_msg)   
-    
-    if os.path.isdir(python_lib_path + "\\pip") and os.path.isdir(python_lib_path + "\\PIL") and glob.glob(python_lib_path + "\\Pillow*"):
-        print("pip and " + lib + " correctly installed in blender lib folder")
+    if importlib.util.find_spec(lib) is None:
+        try: 
+            # install or upgrade pip
+            subprocess.run([sys.executable, "-m", "ensurepip", '--upgrade'], shell=True, check=True)
+            
+            # install required packages
+            subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", lib], shell=True, check=True)
+        except:
+            raise ScriptError(error_msg)
+    else:
+        print(success_msg)
 
 #############################################################################################
 # Convert PNG texture files to JPG, then remove them, and compress existing JPG texture files
@@ -706,13 +653,13 @@ def compress_jpg_texture_files():
     # convert png texture files to jpg
     for png_file in glob.glob(PNG_PATTERN): 
         file_name = os.path.splitext(png_file)[0]
-        print("Convert", textures_folder + file_name + PNG_EXTENSION, "to", textures_folder + "\\" + file_name + JPG_EXTENSION, "with", str(JPG_COMPRESSION_RATIO), "compression_ratio")
+        print("Convert {png:s} to {jpg:s} with {compression:.2f} compression ratio".format(png=join(textures_folder, file_name + PNG_EXTENSION), jpg=join(textures_folder, file_name + JPG_EXTENSION), compression=JPG_COMPRESSION_RATIO))
         try:
-            png_image = Image.open(png_file)            
+            png_image = Image.open(png_file)
             if png_image.mode in ("RGBA", "P"):
                 png_image = png_image.convert("RGB")
             png_image.save(file_name + JPG_EXTENSION, optimize=True, quality=jpg_compression_ratio)
-            print("File converted. Remove", textures_folder + file_name + PNG_EXTENSION) 
+            print("File converted. Remove", join(textures_folder, file_name + PNG_EXTENSION))
             os.remove(png_file)
         except:
             print("Conversion failed")
@@ -726,7 +673,7 @@ def compress_jpg_texture_file(jpg_file):
     
     jpg_compression_ratio = int(JPG_COMPRESSION_RATIO*100)
     file_name = os.path.splitext(jpg_file)[0]
-    print("Compress", textures_folder + file_name + JPG_EXTENSION, "with", str(JPG_COMPRESSION_RATIO), "compression_ratio")
+    print("Compress {file:s} with {compression:.2f} compression ratio".format(file=join(textures_folder, file_name + JPG_EXTENSION), compression=JPG_COMPRESSION_RATIO))
     try:
         jpg_image = Image.open(jpg_file)
         jpg_image.save(file_name + JPG_EXTENSION, optimize=True, quality=jpg_compression_ratio)
@@ -745,11 +692,11 @@ def convert_jpg_texture_files_to_png():
     os.chdir(textures_folder)
     for jpg_file in glob.glob(JPG_PATTERN): 
         file_name = os.path.splitext(jpg_file)[0]
-        print("Convert", textures_folder + file_name + JPG_EXTENSION, "to", textures_folder + "\\" + file_name + PNG_EXTENSION)
+        print("Convert {jpg} to {png}".format(jpg=join(textures_folder, file_name + JPG_EXTENSION), png=join(textures_folder, file_name + PNG_EXTENSION)))
         try:
             jpg_image = Image.open(jpg_file)
             jpg_image.save(file_name + PNG_EXTENSION)
-            print("File converted. Remove", textures_folder + file_name + JPG_EXTENSION) 
+            print("File converted. Remove", join(textures_folder, file_name + JPG_EXTENSION))
             os.remove(jpg_file)
         except:
             print("Conversion failed")
@@ -764,22 +711,22 @@ def backup_files():
     os.chdir(objects_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_modelLib_folder + "\\" + file_name):
+        if not os.path.isfile(join(backup_modelLib_folder, file_name)):
             print("backup file ", file_name)
-            shutil.copyfile(file, backup_modelLib_folder + "\\" + file_name)
+            shutil.copyfile(file, join(backup_modelLib_folder, file_name))
             
     os.chdir(textures_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_modelLib_folder + "\\texture\\" + file_name):
+        if not os.path.isfile(join(backup_modelLib_folder, "texture", file_name)):
             print("backup texture file ", file_name)
-            shutil.copyfile(file, backup_modelLib_folder + "\\texture\\" + file_name)
+            shutil.copyfile(file, join(backup_modelLib_folder, "texture", file_name))
             
     os.chdir(scene_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_scene_folder + "\\" + file_name):
-            shutil.copyfile(file, backup_scene_folder + "\\" + file_name)
+        if not os.path.isfile(join(backup_scene_folder, file_name)):
+            shutil.copyfile(file, join(backup_scene_folder, file_name))
         
 ##################################################################
 # Retrieve objects position from Google Earth API
@@ -799,115 +746,116 @@ def group_linked_objects(objects_tree):
     objects_root = objects_tree.getroot()
 
     for file in glob.glob("*.gltf"):
-        print("-------------------------------------------------------------------------------")
+        if '_' in file: # There may be a file without _LOD in it's name
+            print("-------------------------------------------------------------------------------")
 
-        file_name = os.path.splitext(file)[0]  
-        
-        gltf_file = file_name + ".gltf"
-        bin_file = file_name + ".bin"
-        
-        if not os.path.isfile(gltf_file):
-            continue
-        
-        if not os.path.isfile(bin_file):
-            continue
-        
-        if check_optimisation_tag(gltf_file):
-            print("Skip already optimized file: ", gltf_file)
+            file_name = os.path.splitext(file)[0]
+            
+            gltf_file = file_name + ".gltf"
+            bin_file = file_name + ".bin"
+            
+            if not os.path.isfile(gltf_file):
+                continue
+            
+            if not os.path.isfile(bin_file):
+                continue
+            
+            if check_optimisation_tag(gltf_file):
+                print("Skip already optimized file: ", gltf_file)
+                os.chdir(objects_folder)
+                continue
+            
+            object_name = file_name.split("_")[0]  
+            lod = file_name.split("_")[1]  
+            
+            if not os.path.isdir(file_name):
+                print("create " + file_name + " folder")
+                os.mkdir(file_name)
+            
+            print("move", gltf_file, "into", file_name, "folder")    
+            shutil.move(gltf_file, join(file_name, gltf_file))
+            print("move", bin_file, "into", file_name, "folder")  
+            shutil.move(bin_file, join(file_name, bin_file))
+            
+            
+            os.chdir(textures_folder)
+            for texture_file in glob.glob(file_name + output_texture_format_pattern):
+                if os.path.isfile(texture_file):
+                    print("move", texture_file, "into", file_name, "folder")   
+                    shutil.move(texture_file, join("..", file_name, texture_file)   )
+                    
             os.chdir(objects_folder)
-            continue
-        
-        object_name = file_name.split("_")[0]  
-        lod = file_name.split("_")[1]  
-        
-        if not os.path.isdir(file_name):
-            print("create " + file_name + " folder")
-            os.mkdir(file_name)
-        
-        print("move", gltf_file, "into", file_name, "folder")    
-        shutil.move(gltf_file, file_name + "\\" + gltf_file)
-        print("move", bin_file, "into", file_name, "folder")  
-        shutil.move(bin_file, file_name + "\\" + bin_file)
-        
-        
-        os.chdir(textures_folder)
-        for texture_file in glob.glob(file_name + output_texture_format_pattern):
-            if os.path.isfile(texture_file):
-                print("move", texture_file, "into", file_name, "folder")   
-                shutil.move(texture_file, "../" + file_name + "\\" + texture_file)   
-                 
-        os.chdir(objects_folder)
 
-        pos_file_name = object_name + ".pos"
-        print("pos file name: ", pos_file_name)
-        if os.path.isfile(positions_folder + "\\" + pos_file_name):
-            with open(positions_folder + "\\" + pos_file_name) as pos_file:
-                pos = json.load(pos_file)
-                lat = pos[0]
-                lon = pos[1]
-                
-            for second_file in glob.glob("*.gltf"):        
-                second_file_name = os.path.splitext(second_file)[0]
-                second_gltf_file = second_file_name + ".gltf"
-                second_bin_file = second_file_name + ".bin"
-                second_texture_file = second_file_name + output_texture_format_pattern
-                
-                second_object_name = second_file_name.split("_")[0]
-                second_lod = second_file_name.split("_")[1]  
-                second_pos_file_name = second_object_name + ".pos"
-                second_xml_file_name = second_object_name + ".xml"
-                
-                if second_pos_file_name == pos_file_name:
-                    continue
-                
-                if second_lod != lod:
-                    continue
-        
-                if not os.path.isfile(second_gltf_file):
-                    continue
-                
-                if not os.path.isfile(second_bin_file):
-                    continue
-                
-                # link objects that are inside the tile
-                if os.path.isfile(positions_folder + "\\" + second_pos_file_name):
-                    with open(positions_folder + "\\" + second_pos_file_name) as second_pos_file:
-                        second_pos = json.load(second_pos_file)
-                        if (lat - second_pos[0]) > -0.001 and (lat - second_pos[0]) < 0.001 and (lon - second_pos[1]) > -0.001 and (lon - second_pos[1]) < 0.001:
-                            print("move", second_gltf_file, "into", file_name, "folder")    
-                            shutil.move(second_gltf_file, file_name + "\\" + second_gltf_file)
-                            print("move", second_bin_file, "into", file_name, "folder")
-                            shutil.move(second_bin_file, file_name + "\\" + second_bin_file)
-                            
-                            os.chdir(textures_folder)
-                            for second_texture_file in glob.glob(second_file_name + output_texture_format_pattern):
-                                if os.path.isfile(second_texture_file):
-                                    print("move ", second_texture_file, " into ", file_name, " folder")     
-                                    shutil.move(second_texture_file, "../" + file_name + "\\" + second_texture_file) 
+            pos_file_name = object_name + ".pos"
+            print("pos file name: ", pos_file_name)
+            if os.path.isfile(join(positions_folder, pos_file_name)):
+                with open(join(positions_folder, pos_file_name)) as pos_file:
+                    pos = json.load(pos_file)
+                    lat = pos[0]
+                    lon = pos[1]
+                    
+                for second_file in glob.glob("*.gltf"):        
+                    second_file_name = os.path.splitext(second_file)[0]
+                    second_gltf_file = second_file_name + ".gltf"
+                    second_bin_file = second_file_name + ".bin"
+                    second_texture_file = second_file_name + output_texture_format_pattern
+                    
+                    second_object_name = second_file_name.split("_")[0]
+                    second_lod = second_file_name.split("_")[1]  
+                    second_pos_file_name = second_object_name + ".pos"
+                    second_xml_file_name = second_object_name + ".xml"
+                    
+                    if second_pos_file_name == pos_file_name:
+                        continue
+                    
+                    if second_lod != lod:
+                        continue
+            
+                    if not os.path.isfile(second_gltf_file):
+                        continue
+                    
+                    if not os.path.isfile(second_bin_file):
+                        continue
+                    
+                    # link objects that are inside the tile
+                    if os.path.isfile(join(positions_folder, second_pos_file_name)):
+                        with open(join(positions_folder, second_pos_file_name)) as second_pos_file:
+                            second_pos = json.load(second_pos_file)
+                            if (lat - second_pos[0]) > -0.001 and (lat - second_pos[0]) < 0.001 and (lon - second_pos[1]) > -0.001 and (lon - second_pos[1]) < 0.001:
+                                print("move", second_gltf_file, "into", file_name, "folder")    
+                                shutil.move(second_gltf_file, join(file_name, second_gltf_file))
+                                print("move", second_bin_file, "into", file_name, "folder")
+                                shutil.move(second_bin_file, join(file_name, second_bin_file))
                                 
-                            os.chdir(objects_folder)
-                                
-                            if os.path.isfile(objects_folder + "\\" + second_xml_file_name):
-                                print("move", second_xml_file_name, "into", file_name, "folder") 
-                                shutil.move(second_xml_file_name, file_name + "\\" + second_xml_file_name)
-                                tree = ET.parse(file_name + "\\" + second_xml_file_name)
-                                root = tree.getroot()
-                                guid  = root.get("guid")
-                                print("remove guid: ", guid, " from ", scene_file_name)
-                                print("./SceneryObject/LibraryObject/[@name='" + guid.upper() + "']/..")
-                                for scenery_object in objects_root.findall("./SceneryObject/LibraryObject[@name='" + guid.upper() + "']/.."):
-                                    print("guid found: ", guid)
-                                    scenery_object_parent = objects_root.find("./SceneryObject/LibraryObject[@name='" + guid.upper() + "']/../..")
-                                    scenery_object_parent.remove(scenery_object)
-                                print("./Group/SceneryObject/LibraryObject/[@name='" + guid.upper() + "']/..")    
-                                for scenery_object in objects_root.findall("./Group/SceneryObject/LibraryObject[@name='" + guid.upper() + "']/.."):
-                                    print("guid found: ", guid)
-                                    scenery_object_parent = objects_root.find("./Group/SceneryObject/LibraryObject[@name='" + guid.upper() + "']/../..")
-                                    scenery_object_parent.remove(scenery_object)
-                                
-                                objects_tree.write(scene_folder + scene_file_name)    
-                                line_prepender(scene_folder + scene_file_name, '<?xml version="1.0"?>')
-                                fix_xml_group_indent(scene_folder + scene_file_name)
+                                os.chdir(textures_folder)
+                                for second_texture_file in glob.glob(second_file_name + output_texture_format_pattern):
+                                    if os.path.isfile(second_texture_file):
+                                        print("move ", second_texture_file, " into ", file_name, " folder")     
+                                        shutil.move(second_texture_file, join("..", file_name, second_texture_file))
+                                    
+                                os.chdir(objects_folder)
+                                    
+                                if os.path.isfile(join(objects_folder, second_xml_file_name)):
+                                    print("move", second_xml_file_name, "into", file_name, "folder") 
+                                    shutil.move(second_xml_file_name, join(file_name, second_xml_file_name))
+                                    tree = ET.parse(join(file_name, second_xml_file_name))
+                                    root = tree.getroot()
+                                    guid  = root.get("guid")
+                                    print("remove guid: ", guid, " from ", conf.scene_file_name)
+                                    print("./SceneryObject/LibraryObject/[@name='" + guid.upper() + "']/..")
+                                    for scenery_object in objects_root.findall("./SceneryObject/LibraryObject[@name='" + guid.upper() + "']/.."):
+                                        print("guid found: ", guid)
+                                        scenery_object_parent = objects_root.find("./SceneryObject/LibraryObject[@name='" + guid.upper() + "']/../..")
+                                        scenery_object_parent.remove(scenery_object)
+                                    print("./Group/SceneryObject/LibraryObject/[@name='" + guid.upper() + "']/..")    
+                                    for scenery_object in objects_root.findall("./Group/SceneryObject/LibraryObject[@name='" + guid.upper() + "']/.."):
+                                        print("guid found: ", guid)
+                                        scenery_object_parent = objects_root.find("./Group/SceneryObject/LibraryObject[@name='" + guid.upper() + "']/../..")
+                                        scenery_object_parent.remove(scenery_object)
+                                    
+                                    objects_tree.write(scene_folder + conf.scene_file_name)    
+                                    line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
+                                    fix_xml_group_indent(scene_folder + conf.scene_file_name)
                                 
 #######################################################################
 # Update objects position with the one retrieved from Google Earth API
@@ -938,7 +886,7 @@ def update_objects_position(objects_tree):
             print("object", file_name, "already optimized. Skip position update")
             continue
         
-        for pos_file_name in glob.glob(positions_folder  + "\\" + file_name + "*.pos"):
+        for pos_file_name in glob.glob(join(positions_folder, file_name + "*.pos")):
             with open(pos_file_name) as pos_file:
                 print("pos file ", pos_file.name)
                 pos = json.load(pos_file) 
@@ -961,8 +909,8 @@ def update_objects_position(objects_tree):
             scenery_object.set("lat", str(lat))
             scenery_object.set("lon", str(lon))
                 
-        objects_tree.write(scene_folder + scene_file_name)
-        line_prepender(scene_folder + scene_file_name, '<?xml version="1.0"?>')
+        objects_tree.write(scene_folder + conf.scene_file_name)
+        line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
 
 ##################################################################
 # Update objects LODS min size attributes
@@ -984,13 +932,12 @@ def update_object_lods():
         print("nb_lods :", nb_lods)
         
         for idx, lod in enumerate(lods):
-            lod.set("MinSize", str(target_lods[(nb_lods-1)-idx]))
+            lod.set("MinSize", str(conf.target_lods[(nb_lods-1)-idx]))
             min_size = lod.get("MinSize")
             print("min_size: ", min_size)
             
         tree.write(xml_file)
         line_prepender(xml_file, '<?xml version="1.0"?>')   
-             
 
 ##################################################################
 # Optimization methods
@@ -1021,16 +968,16 @@ def import_dir_files(dir):
 # Export and optimize the tile in a new gltf file, with bin file and textures
 ############################################################################## 
 def export_to_optimized_gltf_files(file_name):
-    print("export to ", objects_folder + file_name, "with associated textures")    
-    bpy.ops.export_scene.gltf(export_format="GLTF_SEPARATE", export_extras=True, filepath=objects_folder + file_name, export_texture_dir="texture")
+    print("export to ", join(objects_folder, file_name), "with associated textures")    
+    bpy.ops.export_scene.gltf(export_format="GLTF_SEPARATE", export_extras=True, filepath=join(objects_folder, file_name), export_texture_dir="texture")
     
-    print("add optimisation tag to ", objects_folder + file_name + ".gltf")
-    add_optimisation_tag(objects_folder + file_name + ".gltf")
-    print("add asobo extensions to ", objects_folder + file_name + ".gltf")
-    add_asobo_extensions(objects_folder + file_name + ".gltf")
-    print("add traffic and collision detection tags to ", objects_folder + file_name + ".gltf")
-    add_asobo_traffic_and_collisions(objects_folder + file_name + ".gltf")    
-    fix_texture_path(objects_folder + file_name + ".gltf")
+    print("add optimisation tag to ", join(objects_folder, file_name) + ".gltf")
+    add_optimisation_tag(join(objects_folder, file_name) + ".gltf")
+    print("add asobo extensions to ", join(objects_folder, file_name) + ".gltf")
+    add_asobo_extensions(join(objects_folder, file_name) + ".gltf")
+    print("add traffic and collision detection tags to ", join(objects_folder, file_name) + ".gltf")
+    add_asobo_traffic_and_collisions(join(objects_folder, file_name) + ".gltf")    
+    fix_texture_path(join(objects_folder, file_name) + ".gltf")
 
 ##################################################################
 # fix texture final size for package compilation
@@ -1049,7 +996,7 @@ def fix_texture_size_for_package_compatibility(packedImage):
 # link the tile materials to the new packed texture
 ##################################################################     
 def link_materials_to_packed_texture(objects, dir, file_name):
-    img = bpy.data.images.load(dir + file_name + "." + output_texture_format)
+    img = bpy.data.images.load(dir + file_name + "." + conf.output_texture_format)
     
     for obj in bpy.context.selected_objects:                
         material = obj.material_slots[0].material
@@ -1093,8 +1040,8 @@ def bake_texture_files(dir, file_name):
             
     for node in source_image_nodes:
         if node.image is None:
-          error=True
-          
+            error=True
+            
     if error is True:
         os.chdir(objects_folder)
         return False      
@@ -1118,8 +1065,8 @@ def bake_texture_files(dir, file_name):
     # fix texture final size for package compilation
     fix_texture_size_for_package_compatibility(packedImage)
 
-    print("Save new baked texture", file_name + "." + output_texture_format)
-    packedImage.save_render(dir + file_name + "." + output_texture_format)   
+    print("Save new baked texture", file_name + "." + conf.output_texture_format)
+    packedImage.save_render(join(dir, file_name + "." + conf.output_texture_format))
     
     # link the tile materials to the new packed texture    
     link_materials_to_packed_texture(objects, dir, file_name)
@@ -1192,29 +1139,29 @@ def fix_object_bounding_box(context, scene):
 # Optimize an object
 ################################################################## 
 def optimize_object(dir):    
-    os.chdir(objects_folder + dir)
+    os.chdir(join(objects_folder, dir))
     clean_scene()
-    print("dir :", objects_folder + dir)
+    print("dir :", join(objects_folder, dir))
     
     # Import the gltf files located in the object folder
     import_dir_files(dir)
 
-    file_name = dir.split("\\")[0]
+    file_name = dir.split(sep)[0]
     gltf_file = file_name + ".gltf"
     
     context = bpy.context
     scene = context.scene
     
-    bake_textures_required = bake_textures_enabled and not check_baked_textures_optimisation_tag(gltf_file) and check_backed_texture_files(objects_folder + dir, file_name)
+    bake_textures_required = conf.bake_textures_enabled and not check_baked_textures_optimisation_tag(gltf_file) and check_backed_texture_files(join(objects_folder, dir), file_name)
     
-    os.chdir(objects_folder + dir)
+    os.chdir(join(objects_folder, dir))
     
     # check if textures are already baked
     if bake_textures_required:
         # bake texture files for the tile
-        bake_texture_files(objects_folder + dir, file_name)
+        bake_texture_files(join(objects_folder, dir), file_name)
         
-    os.chdir(objects_folder + dir)
+    os.chdir(join(objects_folder, dir))
     
     if glob.glob("*.gltf"):  
         # fix the tile bounding box
@@ -1223,8 +1170,8 @@ def optimize_object(dir):
         # Export and optimize the tile in a new gltf file, with bin file and textures
         export_to_optimized_gltf_files(file_name)        
                 
-        if bake_textures_required and output_texture_format == JPG_FORMAT:
-            compress_jpg_texture_file(file_name + "." + output_texture_format)
+        if bake_textures_required and conf.output_texture_format == JPG_FORMAT:
+            compress_jpg_texture_file(file_name + "." + conf.output_texture_format)
             
         os.chdir(objects_folder)
         shutil.rmtree(dir)
@@ -1235,9 +1182,9 @@ def optimize_object(dir):
 def optimize_objects():
     os.chdir(objects_folder)
 
-    for dir in glob.glob("*\\"):
+    for dir in glob.glob("*"+sep):
         print("-------------------------------------------------------------------------------")
-        if dir == "texture\\":
+        if dir == "texture"+sep:
             continue
         
         optimize_object(dir)
@@ -1264,7 +1211,7 @@ def clean_orphan_scenery_objects():
             print("-------------------------------------------------------------------------------")
             print("xml file: ", file_path)
             # remove scenery object reference in the scene file
-            print("remove guid: ", guid, " from ", scene_file_name)
+            print("remove guid: ", guid, " from ", conf.scene_file_name)
             print("./SceneryObject/LibraryObject/[@name='" + guid.upper() + "']/..")
             for scenery_object in objects_root.findall("./SceneryObject/LibraryObject[@name='" + guid.upper() + "']/.."):
                 guid_found = True
@@ -1279,9 +1226,9 @@ def clean_orphan_scenery_objects():
                 scenery_object_parent.remove(scenery_object)
            
             if guid_found:     
-                objects_tree.write(scene_folder + scene_file_name)    
-                line_prepender(scene_folder + scene_file_name, '<?xml version="1.0"?>')
-                fix_xml_group_indent(scene_folder + scene_file_name)
+                objects_tree.write(scene_folder + conf.scene_file_name)    
+                line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
+                fix_xml_group_indent(scene_folder + conf.scene_file_name)
             
             try:
                 os.remove(file_path)
@@ -1298,9 +1245,9 @@ def build_package():
     error_msg = "MSFS SDK tools not installed"
     
     try: 
-        os.chdir(fspackagetool_folder)
-        print(MSFS_BUILD_EXE_FILE + " \"" + project_folder + "\\" + project_file_name + "\" -rebuild -outputdir \"" + project_folder)
-        subprocess.run(MSFS_BUILD_EXE_FILE + " \"" + project_folder + "\\" + project_file_name + "\" -rebuild -outputdir \"" + project_folder, shell=True, check=True)
+        os.chdir(conf.fspackagetool_folder)
+        print(MSFS_BUILD_EXE_FILE + " \"" + join(project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + project_folder + '"')
+        subprocess.run(MSFS_BUILD_EXE_FILE + " \"" + join(project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + project_folder + '"', shell=True, check=True)
     except:
         raise ScriptError(error_msg)
         
@@ -1367,27 +1314,27 @@ def main():
 ##################################################################
 #                           Script
 ################################################################## 
-
 try:
+    print('start!', flush=True)
     check_configuration()
     
     # change modelib folder to fix CTD issues (see https://flightsim.to/blog/creators-guide-fix-ctd-issues-on-your-scenery/)
     os.chdir(project_folder)
     if os.path.isdir(objects_folder):
-        if os.path.isdir(project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib"):
-            shutil.rmtree(project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib")
-        os.rename(objects_folder, project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib")
+        if os.path.isdir(join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")):
+            shutil.rmtree(join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
+        os.rename(objects_folder, join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
 
-    objects_folder = project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib\\"
+    objects_folder = join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")
     # textures folder
-    textures_folder = objects_folder + "texture\\"
+    textures_folder = join(objects_folder, "texture")
     
     check_package_sources_configuration()
     
     # Output folder
     out_folder = textures_folder + "baked"
     # fix package definitions
-    replace_in_file(package_definitions_folder + package_definitions_file_name, "PackageSources\\modelLib\\", "PackageSources\\" + project_name.lower() + "-modelLib\\")
+    replace_in_file(join(package_definitions_folder, conf.package_definitions_file_name), join("PackageSources", "modelLib"), join("PackageSources", conf.project_name.lower() + "-modelLib"))
 
     os.chdir(objects_folder)
 
@@ -1395,7 +1342,7 @@ try:
     if os.path.isdir(out_folder):
         shutil.rmtree(out_folder) 
     os.mkdir(out_folder)
-    os.mkdir(out_folder + "\\texture")
+    os.mkdir(join(out_folder, "texture"))
 
     # create the backup folders
     if not os.path.isdir(backup_folder):
@@ -1404,15 +1351,15 @@ try:
         os.mkdir(backup_scene_folder)    
     if not os.path.isdir(backup_modelLib_folder):
         os.mkdir(backup_modelLib_folder)
-    if not os.path.isdir(backup_modelLib_folder + "\\texture"):
-        os.mkdir(backup_modelLib_folder + "\\texture")
+    if not os.path.isdir(join(backup_modelLib_folder, "texture")):
+        os.mkdir(join(backup_modelLib_folder, "texture"))
         
     # create the positions folder
     if not os.path.isdir(positions_folder):
         os.mkdir(positions_folder)
         
     clean_scene()        
-    objects_tree = ET.parse(scene_folder + scene_file_name)   
+    objects_tree = ET.parse(join(scene_folder, conf.scene_file_name))
     
     print("-------------------------------------------------------------------------------")
     print("--------------------------------- BACKUP FILES --------------------------------")
@@ -1426,18 +1373,18 @@ try:
     
     install_xhr2()
 
-    if not os.path.isdir(project_folder + "\\PackageSources\\modelLib") and not os.path.isdir(project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib"):
-        raise ScriptError("The modelLib folder was not found for the projet " + project_name + ". Please rename your modelLib folder like this:" + project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib")
+    if not os.path.isdir(join(project_folder, "PackageSources", "modelLib")) and not os.path.isdir(join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")):
+        raise ScriptError("The modelLib folder was not found for the projet " + conf.project_name + ". Please rename your modelLib folder like this:" + join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
     else:
         
-        if output_texture_format == PNG_FORMAT:
+        if conf.output_texture_format == PNG_FORMAT:
             if jpg_textures_exist():
                 print(JPG_FORMAT + " texture files detected in", textures_folder, "! Trying to install pip, then convert them")
                         
                 print("-------------------------------------------------------------------------------")
                 print("----------------------------- INSTALL PILLOW ----------------------------------")
                 print("-------------------------------------------------------------------------------") 
-                   
+
                 install_python_lib("Pillow")
             
                 print("-------------------------------------------------------------------------------")
@@ -1450,7 +1397,7 @@ try:
             print("-------------------------------------------------------------------------------")
             print("-------------------------------- INSTALL PIP ----------------------------------")
             print("-------------------------------------------------------------------------------") 
-               
+            
             install_python_lib("Pillow")
         
             print("-------------------------------------------------------------------------------")
@@ -1462,7 +1409,7 @@ try:
         
         main()
     
-        if build_package_enabled:
+        if conf.build_package_enabled:
             if os.path.isdir(msfs_temp_folder):
                 print("Remove MSFS temp folder for future build...")
                 shutil.rmtree(msfs_temp_folder)  
@@ -1475,11 +1422,11 @@ try:
 except ScriptError as ex:
     clean_scene()  
     error_report = "".join(ex.value)
-    print(EOL + error_report)
+    print(EOL + str(error_report))
     pr_bg_red("Script aborted" + CEND)
 except RuntimeError as ex:
     clean_scene()  
-    print(EOL + ex)
+    print(EOL + str(ex))
     pr_bg_red("Script aborted" + CEND)
 finally:  
     os.chdir(cwd)
