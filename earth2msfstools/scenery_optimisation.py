@@ -969,7 +969,7 @@ def import_dir_files(dir):
 ############################################################################## 
 def export_to_optimized_gltf_files(file_name):
     print("export to ", join(objects_folder, file_name), "with associated textures")    
-    bpy.ops.export_scene.gltf(export_format="GLTF_SEPARATE", export_extras=True, filepath=join(objects_folder, file_name), export_texture_dir="texture")
+    bpy.ops.export_scene.ext_gltf(export_format="GLTF_SEPARATE", export_extras=True, filepath=join(objects_folder, file_name), export_texture_dir="texture")
     
     print("add optimisation tag to ", join(objects_folder, file_name) + ".gltf")
     add_optimisation_tag(join(objects_folder, file_name) + ".gltf")
