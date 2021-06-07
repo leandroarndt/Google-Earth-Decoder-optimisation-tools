@@ -1344,15 +1344,16 @@ try:
     os.mkdir(out_folder)
     os.mkdir(join(out_folder, "texture"))
 
-    # create the backup folders
-    if not os.path.isdir(backup_folder):
-        os.mkdir(backup_folder)    
-    if not os.path.isdir(backup_scene_folder):
-        os.mkdir(backup_scene_folder)    
-    if not os.path.isdir(backup_modelLib_folder):
-        os.mkdir(backup_modelLib_folder)
-    if not os.path.isdir(join(backup_modelLib_folder, "texture")):
-        os.mkdir(join(backup_modelLib_folder, "texture"))
+    if conf.backup:
+        # create the backup folders
+        if not os.path.isdir(backup_folder):
+            os.mkdir(backup_folder)    
+        if not os.path.isdir(backup_scene_folder):
+            os.mkdir(backup_scene_folder)    
+        if not os.path.isdir(backup_modelLib_folder):
+            os.mkdir(backup_modelLib_folder)
+        if not os.path.isdir(join(backup_modelLib_folder, "texture")):
+            os.mkdir(join(backup_modelLib_folder, "texture"))
         
     # create the positions folder
     if not os.path.isdir(positions_folder):
@@ -1361,11 +1362,12 @@ try:
     clean_scene()        
     objects_tree = ET.parse(join(scene_folder, conf.scene_file_name))
     
-    print("-------------------------------------------------------------------------------")
-    print("--------------------------------- BACKUP FILES --------------------------------")
-    print("-------------------------------------------------------------------------------")
+    if conf.backup:
+        print("-------------------------------------------------------------------------------")
+        print("--------------------------------- BACKUP FILES --------------------------------")
+        print("-------------------------------------------------------------------------------")
 
-    backup_files()
+        backup_files()
     
     print("-------------------------------------------------------------------------------")
     print("------------------ INSTALL NODE JS XHR2 MODULE, IF NECESSARY ------------------")
