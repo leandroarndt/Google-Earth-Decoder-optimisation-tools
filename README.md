@@ -15,7 +15,7 @@ The scripts are intended to be used with a Google Earth Decoder min LOD of 17\. 
 
 ## 2) Prerequisites
 
-* Blender 2.83 ([https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi](https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi)). **The blender version is important**
+* Blender 2.83 ([https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi](https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi)). **The blender version (=2.83) is important**
 * Node js ([https://nodejs.org/dist/v14.15.1/node-v14.15.1-x64.msi](https://nodejs.org/dist/v14.15.1/node-v14.15.1-x64.msi))
 * Blender2MSFS Toolkit: [https://www.fsdeveloper.com/forum/resources/blender2msfs-toolkit.256/download](https://www.fsdeveloper.com/forum/resources/blender2msfs-toolkit.256/download)
 * Lily texture Packer: [https://gumroad.com/l/DFExj](https://gumroad.com/l/DFExj)
@@ -42,16 +42,16 @@ The script automatically removes the orphaned scenery object xml files (scenery 
 
 ### 3.2) Installation
 
-Just put the scenery_optimisation.py script, and the retrievepos.js script in a folder of your choice.
+Copy "scenery optimization.py" to the folder of your choice and change configuration as needed.
 
 ### 3.3) Configuration
 
 Change the following settings, according to your project:
 
+* **sys.path.append("""C:\Path\To\Google-Earth-Decoder-optimisation-tools"""):** change the path to where you installed Google Earth Decoder optimisation tools
 * **bake_textures_enabled:** tells the script to optimize the textures by baking all the textures corresponding to the min Lod levels of the tiles (default is True). For instance, if you have a gltf file for a tile that is named 30604141705340627_LOD00.gltf, all the texture files corresponding to this tile and this LOD level (all the texture files that start with 30604141705340627_LOD00) will be baked into one single texture
 * **projects_folder:** the parent folder that contains your sceneries
 * **project_name:** the name of your project
-* **node_js_folder:** the folder that contains the node js script that retrieves the Google Earth coords
 * **fspackagetool_folder:** the folder that contains the fspackagetool exe that builds the MSFS packages
 * **target_lods**: an array representing the minsize values per LOD, starting from a minLod of 17 (from the less detailed lod to the most detailed)
 * **project_file_name**: the name of the xml file that embeds the project definition (by default, project_name.xml or author_name+project_name.xml)
@@ -61,6 +61,7 @@ Change the following settings, according to your project:
 * **build_package_enabled:** enable the package compilation when the script has finished (default is True)
 * **output_texture_format:** format of the final texture files (values are PNG_FORMAT, JPG_FORMAT, default is PNG_FORMAT)
 * **JPG_COMPRESSION_RATIO:** if you choose the jpg format for the output texture files, indicates the compression ratio
+* * **backup:** whether to backup your source files or not (should probably be True)
 
 ### 3.4) Usage
 
