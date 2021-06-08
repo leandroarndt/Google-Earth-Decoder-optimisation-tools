@@ -15,7 +15,7 @@ The scripts are intended to be used with a Google Earth Decoder min LOD of 17\. 
 
 ## 2) Prerequisites
 
-* Blender 2.83 ([https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi](https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi)). **The blender version (=2.83) is important**
+* Blender 2.83 ([https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi](https://download.blender.org/release/Blender2.83/blender-2.83.9-windows64.msi)). **The blender version (>= 2.83 and <= 2.92) is important**
 * Node js ([https://nodejs.org/dist/v14.15.1/node-v14.15.1-x64.msi](https://nodejs.org/dist/v14.15.1/node-v14.15.1-x64.msi))
 * Blender2MSFS Toolkit: [https://www.fsdeveloper.com/forum/resources/blender2msfs-toolkit.256/download](https://www.fsdeveloper.com/forum/resources/blender2msfs-toolkit.256/download)
 * Lily texture Packer: [https://gumroad.com/l/DFExj](https://gumroad.com/l/DFExj)
