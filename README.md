@@ -61,7 +61,7 @@ Change the following settings, according to your project:
 * **build_package_enabled:** enable the package compilation when the script has finished (default is True)
 * **output_texture_format:** format of the final texture files (values are PNG_FORMAT, JPG_FORMAT, default is PNG_FORMAT)
 * **JPG_COMPRESSION_RATIO:** if you choose the jpg format for the output texture files, indicates the compression ratio
-* * **backup:** whether to backup your source files or not (should probably be True)
+* **backup:** whether to backup your source files or not (should probably be True)
 
 ### 3.4) Usage
 
@@ -194,6 +194,7 @@ Change the following settings, according to your project:
 * **dest_package_definitions_file_name**: the name of the xml file that embeds the destination package definitions (by default, dest_project_name.xml or author_name+dest_project_name.xml)
 * **author_name**: the name of the author of the scenery
 * **build_package_enabled**: enable the package compilation when the script has finished (default is True)
+* **backup:** whether to backup your source files or not (should probably be True)
 
 ### 6.4) Usage
 
