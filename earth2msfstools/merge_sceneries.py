@@ -36,59 +36,59 @@ os.system("cls")
 # initial directory
 cwd = os.path.dirname(__file__)
 
-src_project_folder = join(conf.projects_folder, conf.src_project_name)
-dest_project_folder = join(conf.projects_folder, conf.project_name)
+src_project_folder = os.path.join(conf.projects_folder, conf.src_project_name)
+dest_project_folder = os.path.join(conf.projects_folder, conf.project_name)
 
 # project file names fallback
-if not os.path.isfile(join(src_project_folder, conf.src_project_file_name)):
-    if os.path.isfile(join(src_project_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower()))):
+if not os.path.isfile(os.path.join(src_project_folder, conf.src_project_file_name)):
+    if os.path.isfile(os.path.join(src_project_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower()))):
         conf.src_project_file_name = '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower())
     else:
         conf.src_project_file_name = conf.src_project_name.lower() + ".xml"
 
-if not os.path.isfile(join(dest_project_folder, conf.project_file_name)):
-    if os.path.isfile(join(dest_project_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
+if not os.path.isfile(os.path.join(dest_project_folder, conf.project_file_name)):
+    if os.path.isfile(os.path.join(dest_project_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
         conf.project_file_name = '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower())
     else:
         conf.project_file_name = conf.project_name.lower() + ".xml"
 
 # package definitions folder
-src_package_definitions_folder = join(src_project_folder, "PackageDefinitions")
-dest_package_definitions_folder = join(dest_project_folder, "PackageDefinitions")
+src_package_definitions_folder = os.path.join(src_project_folder, "PackageDefinitions")
+dest_package_definitions_folder = os.path.join(dest_project_folder, "PackageDefinitions")
 
 # package definitions file names fallback
-if not os.path.isfile(join(src_package_definitions_folder, conf.src_package_definitions_file_name)):
-    if os.path.isfile(join(src_package_definitions_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower()))):
+if not os.path.isfile(os.path.join(src_package_definitions_folder, conf.src_package_definitions_file_name)):
+    if os.path.isfile(os.path.join(src_package_definitions_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower()))):
         conf.src_package_definitions_file_name = '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.src_project_name.lower())
     else:
         conf.src_package_definitions_file_name = conf.src_project_name.lower() + ".xml"
 
-if not os.path.isfile(join(dest_package_definitions_folder + conf.package_definitions_file_name)):
-    if os.path.isfile(join(dest_package_definitions_folder + '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
+if not os.path.isfile(os.path.join(dest_package_definitions_folder + conf.package_definitions_file_name)):
+    if os.path.isfile(os.path.join(dest_package_definitions_folder + '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
         conf.package_definitions_file_name = '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower())
     else:
         conf.package_definitions_file_name = conf.project_name.lower() + ".xml"
 
 # objects folders
-src_objects_folder = join(src_project_folder, "PackageSources", "modelLib")
-dest_objects_folder = join(dest_project_folder, "PackageSources", "modelLib")
+src_objects_folder = os.path.join(src_project_folder, "PackageSources", "modelLib")
+dest_objects_folder = os.path.join(dest_project_folder, "PackageSources", "modelLib")
 # scene folders
-src_scene_folder = join(src_project_folder, "PackageSources", "scene")
-dest_scene_folder = join(dest_project_folder, "PackageSources", "scene")
+src_scene_folder = os.path.join(src_project_folder, "PackageSources", "scene")
+dest_scene_folder = os.path.join(dest_project_folder, "PackageSources", "scene")
 # backup folders
-src_backup_folder = join(src_project_folder, "backup")
-dest_backup_folder = join(dest_project_folder, "backup", "merge_sceneries")
+src_backup_folder = os.path.join(src_project_folder, "backup")
+dest_backup_folder = os.path.join(dest_project_folder, "backup", "merge_sceneries")
 # backup fps_modelLib folders
-src_backup_modelLib_folder = join(src_backup_folder, "modelLib")
-dest_backup_modelLib_folder = join(dest_backup_folder, "modelLib")
+src_backup_modelLib_folder = os.path.join(src_backup_folder, "modelLib")
+dest_backup_modelLib_folder = os.path.join(dest_backup_folder, "modelLib")
 # backup scene folders
-src_backup_scene_folder = join(src_backup_folder, "scene")
-dest_backup_scene_folder = join(dest_backup_folder, "scene")
+src_backup_scene_folder = os.path.join(src_backup_folder, "scene")
+dest_backup_scene_folder = os.path.join(dest_backup_folder, "scene")
 # positions folders
-src_positions_folder = join(src_project_folder, "positions")
-dest_positions_folder = join(dest_project_folder, "positions")
+src_positions_folder = os.path.join(src_project_folder, "positions")
+dest_positions_folder = os.path.join(dest_project_folder, "positions")
 # MSFS temp folder
-msfs_temp_folder = join(dest_project_folder, "_PackageInt")
+msfs_temp_folder = os.path.join(dest_project_folder, "_PackageInt")
 
 ######################################################
 # colored print methods
@@ -126,17 +126,17 @@ def check_configuration():
     pr_ok_green     ("conf.project_name value                 ")
 
     # check if the project files are reachable
-    if not os.path.isfile(join(src_project_folder, conf.src_project_file_name)):
+    if not os.path.isfile(os.path.join(src_project_folder, conf.src_project_file_name)):
         pr_ko_red   ("conf.src_project_file_name value             ")
-        raise ScriptError(error_msg + "Source project file (" + join(src_project_folder, conf.src_project_file_name) + ") not found. Please check the conf.src_project_file_name value")
+        raise ScriptError(error_msg + "Source project file (" + os.path.join(src_project_folder, conf.src_project_file_name) + ") not found. Please check the conf.src_project_file_name value")
     pr_ok_green     ("conf.src_project_file_name value             ")
-    if not os.path.isfile(join(dest_project_folder, conf.project_file_name)):
+    if not os.path.isfile(os.path.join(dest_project_folder, conf.project_file_name)):
         pr_ko_red   ("conf.project_file_name value            ")
-        raise ScriptError(error_msg + "Destination project file (" + join(dest_project_folder, conf.project_file_name) + ") not found. Please check the conf.project_file_name value")
+        raise ScriptError(error_msg + "Destination project file (" + os.path.join(dest_project_folder, conf.project_file_name) + ") not found. Please check the conf.project_file_name value")
     pr_ok_green     ("conf.project_file_name value            ")
 
     # check if the fspackagetool.exe file is reachable
-    if not os.path.isfile(join(conf.fspackagetool_folder, MSFS_BUILD_EXE_FILE)):
+    if not os.path.isfile(os.path.join(conf.fspackagetool_folder, MSFS_BUILD_EXE_FILE)):
         pr_ko_orange("conf.fspackagetool_folder value              ")
         conf.build_package_enabled = False
         print(CORANGE + warning_msg + MSFS_BUILD_EXE_FILE + " bin file not found. Automatic package building disabled" + CEND + EOL)
@@ -264,22 +264,22 @@ def backup_files():
     os.chdir(dest_objects_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(join(dest_backup_modelLib_folder, file_name)):
+        if not os.path.isfile(os.path.join(dest_backup_modelLib_folder, file_name)):
             print("backup file ", file_name)
-            shutil.copyfile(file, join(dest_backup_modelLib_folder, file_name))
+            shutil.copyfile(file, os.path.join(dest_backup_modelLib_folder, file_name))
 
     os.chdir(dest_textures_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(join(dest_backup_modelLib_folder, "texture", file_name)):
+        if not os.path.isfile(os.path.join(dest_backup_modelLib_folder, "texture", file_name)):
             print("backup texture file ", file_name)
-            shutil.copyfile(file, join(dest_backup_modelLib_folder, "texture", file_name))
+            shutil.copyfile(file, os.path.join(dest_backup_modelLib_folder, "texture", file_name))
 
     os.chdir(dest_scene_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(join(dest_backup_scene_folder, file_name)):
-            shutil.copyfile(file, join(dest_backup_scene_folder, file_name))
+        if not os.path.isfile(os.path.join(dest_backup_scene_folder, file_name)):
+            shutil.copyfile(file, os.path.join(dest_backup_scene_folder, file_name))
 
 ##########################################################################################
 # Copy files from the destination packageSources to the destination packageSources folder
@@ -288,12 +288,12 @@ def backup_files():
 def copy_file(file, dest_folder):
     file_name = os.path.basename(file)
 
-    if not os.path.isfile(join(dest_folder, file_name)):
+    if not os.path.isfile(os.path.join(dest_folder, file_name)):
         print("copy file ", file_name)
     else:
         print("overwrite file ", file_name)
 
-    shutil.copyfile(file, join(dest_folder, file_name))
+    shutil.copyfile(file, os.path.join(dest_folder, file_name))
 
 def copy_files():
     os.chdir(src_objects_folder)
@@ -383,8 +383,8 @@ def build_package():
 
     try:
         os.chdir(conf.fspackagetool_folder)
-        print("fspackagetool.exe \"" + join(dest_project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + dest_project_folder)
-        subprocess.run("fspackagetool.exe \"" + join(dest_project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + dest_project_folder, shell=True, check=True)
+        print("fspackagetool.exe \"" + os.path.join(dest_project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + dest_project_folder)
+        subprocess.run("fspackagetool.exe \"" + os.path.join(dest_project_folder, conf.project_file_name) + "\" -rebuild -outputdir \"" + dest_project_folder, shell=True, check=True)
     except:
         raise ScriptError(error_msg)
 
@@ -397,45 +397,45 @@ def build_package():
 try:
     check_configuration()
 
-    if not os.path.isdir(join(src_project_folder, "PackageSources", "modelLib")) and not os.path.isdir(join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib")):
-        print("The modelLib folder was not found for the projet", conf.src_project_name, ". Abort optimization script. Please rename your modelLib folder like this:", join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib"))
+    if not os.path.isdir(os.path.join(src_project_folder, "PackageSources", "modelLib")) and not os.path.isdir(os.path.join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib")):
+        print("The modelLib folder was not found for the projet", conf.src_project_name, ". Abort optimization script. Please rename your modelLib folder like this:", os.path.join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib"))
     else:
-        if not os.path.isdir(join(dest_project_folder, "PackageSources", "modelLib")) and not os.path.isdir(join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")):
-            print("The modelLib folder was not found for the projet", conf.project_name, ". Abort optimization script. Please rename your modelLib folder like this:", join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
+        if not os.path.isdir(os.path.join(dest_project_folder, "PackageSources", "modelLib")) and not os.path.isdir(os.path.join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")):
+            print("The modelLib folder was not found for the projet", conf.project_name, ". Abort optimization script. Please rename your modelLib folder like this:", os.path.join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
         else:
             # change modelib folder to fix CTD issues (see https://flightsim.to/blog/creators-guide-fix-ctd-issues-on-your-scenery/)
             os.chdir(src_project_folder)
             if os.path.isdir(src_objects_folder):
-                os.rename(src_objects_folder, join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib"))
+                os.rename(src_objects_folder, os.path.join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib"))
 
             os.chdir(dest_project_folder)
             if os.path.isdir(dest_objects_folder):
-                os.rename(dest_objects_folder, join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
+                os.rename(dest_objects_folder, os.path.join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
 
-            src_objects_folder = join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib")
-            dest_objects_folder = join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")
+            src_objects_folder = os.path.join(src_project_folder, "PackageSources", conf.src_project_name.lower() + "-modelLib")
+            dest_objects_folder = os.path.join(dest_project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")
             # textures folder
-            src_textures_folder = join(src_objects_folder, "texture")
-            dest_textures_folder = join(dest_objects_folder, "texture")
+            src_textures_folder = os.path.join(src_objects_folder, "texture")
+            dest_textures_folder = os.path.join(dest_objects_folder, "texture")
 
             check_package_sources_configuration()
 
             # fix package definitions
-            replace_in_file(join(src_package_definitions_folder, conf.src_package_definitions_file_name), join("PackageSources", "modelLib"), join("PackageSources", conf.src_project_name.lower() + "-modelLib"))
-            replace_in_file(join(dest_package_definitions_folder, conf.package_definitions_file_name), join("PackageSources", "modelLib"), join("PackageSources", conf.project_name.lower() + "-modelLib"))
+            replace_in_file(os.path.join(src_package_definitions_folder, conf.src_package_definitions_file_name), os.path.join("PackageSources", "modelLib"), os.path.join("PackageSources", conf.src_project_name.lower() + "-modelLib"))
+            replace_in_file(os.path.join(dest_package_definitions_folder, conf.package_definitions_file_name), os.path.join("PackageSources", "modelLib"), os.path.join("PackageSources", conf.project_name.lower() + "-modelLib"))
 
             if conf.backup:
                 # create the backup folders
-                if not os.path.isdir(join(dest_project_folder, "backup")):
-                    os.mkdir(join(dest_project_folder, "backup"))
+                if not os.path.isdir(os.path.join(dest_project_folder, "backup")):
+                    os.mkdir(os.path.join(dest_project_folder, "backup"))
                 if not os.path.isdir(dest_backup_folder):
                     os.mkdir(dest_backup_folder)
                 if not os.path.isdir(dest_backup_scene_folder):
                     os.mkdir(dest_backup_scene_folder)
                 if not os.path.isdir(dest_backup_modelLib_folder):
                     os.mkdir(dest_backup_modelLib_folder)
-                if not os.path.isdir(join(dest_backup_modelLib_folder, "texture")):
-                    os.mkdir(join(dest_backup_modelLib_folder, "texture"))
+                if not os.path.isdir(os.path.join(dest_backup_modelLib_folder, "texture")):
+                    os.mkdir(os.path.join(dest_backup_modelLib_folder, "texture"))
 
                 print("-------------------------------------------------------------------------------")
                 print("--------------------------------- BACKUP FILES --------------------------------")
