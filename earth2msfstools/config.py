@@ -43,5 +43,20 @@ class Config(object):
         # output format of the texture files (jpg or png)
         self.output_texture_format = PNG_FORMAT
 
+        # Backup files
+        self.backup = True
+        # ***************** merge sceneries specific options *****************
+        # folder of the scenery project you want to add to the final scenery project
+        self.src_project_name = "src-project-name"
+
+        # name of the xml file that embeds the project definition (by default, project_name.xml or author_name+conf.src_project_name.xml)
+        # for the scenery project you want to add to the final scenery project
+        self.src_project_file_name = "SceneryProject.xml"
+
+        # name of the xml file that embeds the package definitions (by default, project_name.xml or author_name+conf.src_project_name.xml)
+        # for the final scenery project you want to merge into
+        self.src_package_definitions_file_name = "{:s}-{:s}.xml".format(self.author_name, self.src_project_name)
+
+
 if not 'conf' in dir():
     conf = Config()
