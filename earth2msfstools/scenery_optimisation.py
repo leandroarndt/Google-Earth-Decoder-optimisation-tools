@@ -518,9 +518,9 @@ def center_origin(obj):
 # Retrieve Google Earth position data methods
 ######################################################
 def retrieve_first_tile_old_position():
-    xml_file = backup_scene_folder + conf.scene_file_name
+    xml_file = join(backup_scene_folder, conf.scene_file_name)
 
-    if os.path.isfile(backup_scene_folder + conf.scene_file_name):
+    if os.path.isfile(join(backup_scene_folder, conf.scene_file_name)):
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
@@ -853,9 +853,9 @@ def group_linked_objects(objects_tree):
                                         scenery_object_parent = objects_root.find("./Group/SceneryObject/LibraryObject[@name='" + guid.upper() + "']/../..")
                                         scenery_object_parent.remove(scenery_object)
 
-                                    objects_tree.write(scene_folder + conf.scene_file_name)
-                                    line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
-                                    fix_xml_group_indent(scene_folder + conf.scene_file_name)
+                                    objects_tree.write(join(scene_folder, conf.scene_file_name))
+                                    line_prepender(join(scene_folder, conf.scene_file_name), '<?xml version="1.0"?>')
+                                    fix_xml_group_indent(join(scene_folder, conf.scene_file_name))
 
 #######################################################################
 # Update objects position with the one retrieved from Google Earth API
@@ -909,8 +909,8 @@ def update_objects_position(objects_tree):
             scenery_object.set("lat", str(lat))
             scenery_object.set("lon", str(lon))
 
-        objects_tree.write(scene_folder + conf.scene_file_name)
-        line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
+        objects_tree.write(join(scene_folder, conf.scene_file_name))
+        line_prepender(join(scene_folder, conf.scene_file_name), '<?xml version="1.0"?>')
 
 ##################################################################
 # Update objects LODS min size attributes
@@ -1226,9 +1226,9 @@ def clean_orphan_scenery_objects():
                 scenery_object_parent.remove(scenery_object)
 
             if guid_found:
-                objects_tree.write(scene_folder + conf.scene_file_name)
-                line_prepender(scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
-                fix_xml_group_indent(scene_folder + conf.scene_file_name)
+                objects_tree.write(join(scene_folder, conf.scene_file_name))
+                line_prepender(join(scene_folder, conf.scene_file_name), '<?xml version="1.0"?>')
+                fix_xml_group_indent(join(scene_folder, conf.scene_file_name))
 
             try:
                 os.remove(file_path)
