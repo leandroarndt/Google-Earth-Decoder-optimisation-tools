@@ -45,6 +45,7 @@ class Config(object):
 
         # Backup files
         self.backup = True
+        
         # ***************** merge sceneries specific options *****************
         # folder of the scenery project you want to add to the final scenery project
         self.src_project_name = "src-project-name"
@@ -56,6 +57,10 @@ class Config(object):
         # name of the xml file that embeds the package definitions (by default, project_name.xml or author_name+conf.src_project_name.xml)
         # for the final scenery project you want to merge into
         self.src_package_definitions_file_name = "{:s}-{:s}.xml".format(self.author_name, self.src_project_name)
+        
+        # ***************** texture compression specific options *****************
+        # number of compressonator tasks running at the same time
+        self.nb_parallel_tasks = 20
 
 
 if not 'conf' in dir():

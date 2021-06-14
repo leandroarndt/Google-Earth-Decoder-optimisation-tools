@@ -1,3 +1,10 @@
+import sys, glob, os, shutil, subprocess
+from xml.dom.minidom import *
+from xml.dom.minidom import *
+from os.path import dirname, join, normpath
+import xml.etree.ElementTree as ET
+from .config import conf
+
 ######################################################
 # script settings
 ######################################################
@@ -14,7 +21,7 @@ OK = "OK"
 KO = "KO"
 EOL = "\n"
 COMPRESSONATOR_EXE_FILE = "compressonatorcli.exe"
-PACKAGES_TEXTURES_SUBFOLDERS = "\\scenery\\global\\scenery\\TEXTURE"
+PACKAGES_TEXTURES_SUBFOLDERS = join("scenery", "global", "scenery", "TEXTURE")
 BMP_FORMAT = "BMP"
 DDS_FORMAT = "DDS"
 BMP_EXTENSION = "." + BMP_FORMAT
@@ -23,34 +30,12 @@ BMP_PATTERN = "*." + BMP_FORMAT
 DDS_PATTERN = "*." + DDS_FORMAT
 DDS_CONVERSION_FORMAT = "DXT1"
 BASE_COLOR_INDEX = 0
-NB_PARALLEL_TASKS = 20
-
-# reduce number of texture files (Lily Texture Packer addon is necessary https://gumroad.com/l/DFExj)
-bake_textures_enabled = True
-
-# folder where the scenery projects are placed
-projects_folder = "E:\\MSFSProjects"
-
-# folder of the scenery project you want to optimize
-project_name = "My_project"
-
-# folder that contains the compressonator exe that converts dds files
-compressonatortool_folder = "compressonator_folder"
-
-# author name
-author_name = "author_name"
 
 #######################****************###########################
 
-import sys, glob, os, shutil, subprocess
-from xml.dom.minidom import *
-from xml.dom.minidom import *
-from os.path import dirname, join, normpath
-import xml.etree.ElementTree as ET
-
 class ScriptError(Exception):      
     def __init__(self, value):
-       self.value = CREDBG + value + CEND + EOL
+        self.value = CREDBG + value + CEND + EOL
     def __str__(self):
         return repr(CREDBG + self.value + CEND + EOL)
 
@@ -60,16 +45,16 @@ os.system("cls")
 # initial directory 
 cwd = os.path.dirname(__file__)
 
-project_folder = projects_folder + "\\" + project_name
+project_folder = join(conf.projects_folder, conf.project_name)
         
 # built packages folder
-built_packages_folder = project_folder + "\\Packages\\"
+built_packages_folder = join(project_folder, "Packages")
 # built packages texture folder
-built_packages_textures_folder = built_packages_folder + project_name.lower() + PACKAGES_TEXTURES_SUBFOLDERS
+built_packages_textures_folder = join(built_packages_folder, conf.project_name.lower(), PACKAGES_TEXTURES_SUBFOLDERS)
 # backup folder
-backup_folder = project_folder + "\\backup"
+backup_folder = join(project_folder, "backup")
 # backup packages texture folder
-backup_packages_textures_folder = backup_folder + "\\packages_textures"
+backup_packages_textures_folder = join(backup_folder, "packages_textures")
 
 ######################################################
 # colored print methods
@@ -90,17 +75,17 @@ def check_configuration():
     error_msg = "Configuration error found ! "
     
     # check if the projects folder exists
-    if not os.path.isdir(projects_folder):
-        pr_ko_red   ("projects_folder value               ")
-        raise ScriptError(error_msg + "The folder containing your projects (" + projects_folder + ") was not found. Please check the projects_folder value")
-    pr_ok_green     ("projects_folder value               ")
+    if not os.path.isdir(conf.projects_folder):
+        pr_ko_red   ("conf.projects_folder value               ")
+        raise ScriptError(error_msg + "The folder containing your projects (" + conf.projects_folder + ") was not found. Please check the conf.projects_folder value")
+    pr_ok_green     ("conf.projects_folder value               ")
         
     # check the projects name
     if not os.path.isdir(project_folder):
-        pr_ko_red   ("project_name value                  ")
-        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the project_name value")
-    pr_ok_green     ("project_name value                  ")    
-             
+        pr_ko_red   ("conf.project_name value                  ")
+        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the conf.project_name value")
+    pr_ok_green     ("conf.project_name value                  ")    
+    
     # check if the built packages folder exists
     if not os.path.isdir(built_packages_folder):
         pr_ko_red   ("built_packages folder value         ")
@@ -108,11 +93,11 @@ def check_configuration():
     pr_ok_green     ("built_packages folder value         ")
         
     # check if the compressonatorcli.exe file is reachable
-    if not os.path.isfile(compressonatortool_folder + "\\" + COMPRESSONATOR_EXE_FILE):
-        pr_ko_red("compressonatortool_folder value     ")
+    if not os.path.isfile(join(conf.compressonatortool_folder, COMPRESSONATOR_EXE_FILE)):
+        pr_ko_red("conf.compressonatortool_folder value     ")
         build_package_enabled = False
         raise ScriptError(error_msg + COMPRESSONATOR_EXE_FILE + " bin file not found. DDS conversion disabled" + CEND + EOL)
-    pr_ok_green     ("compressonatortool_folder value     ")    
+    pr_ok_green     ("conf.compressonatortool_folder value     ")    
 
 ######################################################
 # check packages folder configuration methods
@@ -134,9 +119,9 @@ def backup_files():
     os.chdir(built_packages_textures_folder)
     for file in glob.glob(DDS_PATTERN):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_packages_textures_folder + "\\" + file_name):
+        if not os.path.isfile(join(backup_packages_textures_folder, file_name)):
             print("backup file ", file_name)
-            shutil.copyfile(file, backup_packages_textures_folder + "\\" + file_name)
+            shutil.copyfile(file, join(backup_packages_textures_folder, file_name))
 
 ######################################################
 # dds texture files conversion methods
@@ -175,7 +160,7 @@ def retrieve_texture_files_to_treat(texture_files_pattern, texture_files_extensi
            
         data.append({'file_name': file_name + texture_files_extension, 'dest_file_name': file_name + dest_texture_files_extension}) 
     
-    return chunks(data, NB_PARALLEL_TASKS)
+    return chunks(data, conf.nb_parallel_tasks)
      
 def do_convert_dds_texture_files(data):        
     ON_POSIX = 'posix' in sys.builtin_module_names
@@ -184,7 +169,7 @@ def do_convert_dds_texture_files(data):
         # create a pipe to get data
         input_fd, output_fd = os.pipe()
         
-        processes = [subprocess.Popen([compressonatortool_folder + "\\" + COMPRESSONATOR_EXE_FILE, obj['file_name'], obj['dest_file_name']], stdout=output_fd,
+        processes = [subprocess.Popen([join(conf.compressonatortool_folder, COMPRESSONATOR_EXE_FILE), obj['file_name'], obj['dest_file_name']], stdout=output_fd,
                            close_fds=ON_POSIX) # close input_fd in children
                      for obj in chunck]
         
@@ -205,7 +190,7 @@ def compress_dds_texture_files(data):
         # create a pipe to get data
         input_fd, output_fd = os.pipe()
         
-        processes = [subprocess.Popen([compressonatortool_folder + "\\" + COMPRESSONATOR_EXE_FILE, "-fd", DDS_CONVERSION_FORMAT, obj['file_name'], obj['dest_file_name']], stdout=output_fd,
+        processes = [subprocess.Popen([join(conf.compressonatortool_folder, COMPRESSONATOR_EXE_FILE), "-fd", DDS_CONVERSION_FORMAT, obj['file_name'], obj['dest_file_name']], stdout=output_fd,
                        close_fds=ON_POSIX) # close input_fd in children
                  for obj in chunck]
     
@@ -243,7 +228,7 @@ try:
     check_configuration()    
     
     if not os.path.isdir(built_packages_textures_folder):
-        built_packages_textures_folder = built_packages_folder + author_name.lower() + "-" + project_name.lower() + PACKAGES_TEXTURES_SUBFOLDERS
+        built_packages_textures_folder = join(built_packages_folder, conf.author_name.lower() + "-" + conf.project_name.lower(), PACKAGES_TEXTURES_SUBFOLDERS)
     
     check_packages_folder_configuration()
 
@@ -255,11 +240,12 @@ try:
     if not os.path.isdir(backup_packages_textures_folder):
         os.mkdir(backup_packages_textures_folder)
     
-    print("-------------------------------------------------------------------------------")
-    print("--------------------------------- BACKUP FILES --------------------------------")
-    print("-------------------------------------------------------------------------------")
+    if conf.backup:
+        print("-------------------------------------------------------------------------------")
+        print("--------------------------------- BACKUP FILES --------------------------------")
+        print("-------------------------------------------------------------------------------")
 
-    # backup_files()
+        backup_files()
         
     main()
     
