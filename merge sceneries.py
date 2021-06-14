@@ -49,7 +49,7 @@ conf.package_definitions_file_name = "{:s}-{:s}.xml".format(self.author_name, se
 conf.build_package_enabled = True
 
 # Backup files may not be needed if original meshes have not been modified (fresh download)
-conf.backup = False
+conf.backup = True
 
 if not 'merge_sceneries' in sys.modules:
     from earth2msfstools import merge_sceneries
