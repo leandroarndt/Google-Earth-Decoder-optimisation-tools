@@ -3,6 +3,7 @@ import sys
 # Path to where you extracted the Google-Earth-Decoder-optimisation-tools package:
 sys.path.append("""C:\Path\To\Google-Earth-Decoder-optimisation-tools""")
 from importlib import reload
+from earth2msfstools.config import conf
 
 # reduce number of texture files (Lily Texture Packer addon is necessary https://gumroad.com/l/DFExj)
 conf.bake_textures_enabled = True
