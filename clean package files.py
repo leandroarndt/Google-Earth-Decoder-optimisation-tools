@@ -34,6 +34,9 @@ conf.package_definitions_file_name = "{:s}-{:s}.xml".format(conf.author_name, co
 # enable the package compilation when the script has finished
 conf.build_package_enabled = True
 
+# use with care
+conf.backup = True
+
 if not 'scenery_optimisation' in sys.modules:
     from earth2msfstools import clean_package_files
 else:

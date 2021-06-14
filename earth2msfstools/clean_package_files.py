@@ -1,7 +1,5 @@
-import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess
-from math import radians, cos, sin, asin, sqrt
+import glob, os, shutil, subprocess
 from xml.dom.minidom import *
-from mathutils import Vector 
 from xml.dom.minidom import *
 import xml.etree.ElementTree as ET
 from .config import conf
