@@ -1,3 +1,11 @@
+import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess
+from math import radians, cos, sin, asin, sqrt
+from xml.dom.minidom import *
+from mathutils import Vector 
+from xml.dom.minidom import *
+import xml.etree.ElementTree as ET
+from .config import conf
+
 ######################################################
 # script settings
 ######################################################
@@ -16,47 +24,11 @@ EOL = "\n"
 NODE_JS_SCRIPT="retrievelpos.js"
 MSFS_BUILD_EXE_FILE="fspackagetool.exe"
 
-# folder where the scenery projects are placed
-projects_folder = "E:\\MSFSProjects"
-
-# folder of the scenery project you want to optimize
-project_name = "My_project"
-
-# folder that contains the fspackagetool exe that builds the MSFS packages
-fspackagetool_folder = "C:\\MSFS SDK\\Tools\\bin"
-
-# minsize values per LOD, starting from a minLod of 17 (from the less detailed lod to the most detailed)
-target_lods = [0, 15, 50, 70, 80, 90, 100]
-# if you use a minLod of 16, consider using this array instead
-# target_lods = [0, 5, 15, 50, 70, 80, 90, 100]
-
-# name of the xml file that embeds the project definition (by default, project_name.xml or author_name+project_name.xml)
-project_file_name = "author_name-project_name.xml"
-
-# name of the xml file that embeds the tile descriptions (by default, objects.xml)
-scene_file_name = "objects.xml"
-
-# name of the xml file that embeds the package definitions (by default, project_name.xml or author_name+project_name.xml)
-package_definitions_file_name = "author_name-project_name.xml"
-
-# author name
-author_name = "author_name"
-
-# enable the package compilation when the script has finished
-build_package_enabled = True
-
 #######################****************###########################
-
-import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess
-from math import radians, cos, sin, asin, sqrt
-from xml.dom.minidom import *
-from mathutils import Vector 
-from xml.dom.minidom import *
-import xml.etree.ElementTree as ET
 
 class ScriptError(Exception):      
     def __init__(self, value):
-       self.value = CREDBG + value + CEND + EOL
+        self.value = CREDBG + value + CEND + EOL
     def __str__(self):
         return repr(CREDBG + self.value + CEND + EOL)
 
@@ -66,34 +38,34 @@ os.system("cls")
 # initial directory 
 cwd = os.path.dirname(__file__)
 
-project_folder = projects_folder + "\\" + project_name
+project_folder = os.path.join(conf.projects_folder, conf.project_name)
 # project file name fallback
-if not os.path.isfile(project_folder + "\\" + project_file_name):
-    if os.path.isfile(project_folder + "\\" + author_name.lower() + "-" + project_name.lower() + ".xml"):
-        project_file_name = project_folder + "\\" + author_name.lower() + "-" + project_name.lower() + ".xml"
+if not os.path.isfile(os.path.join(project_folder, conf.project_file_name)):
+    if os.path.isfile(os.path.join(project_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))):
+        conf.project_file_name = os.path.join(project_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))
     else:
-        project_file_name = project_name.lower() + ".xml"
+        conf.project_file_name = conf.project_name.lower() + ".xml"
     
 # package definitions folder
-package_definitions_folder = project_folder + "\\PackageDefinitions\\"
+package_definitions_folder = os.path.join(project_folder, "PackageDefinitions")
 
 # package definitions file name fallback
-if not os.path.isfile(package_definitions_folder + package_definitions_file_name):
-    if os.path.isfile(package_definitions_folder + author_name.lower() + "-" + project_name.lower() + ".xml"):
-        package_definitions_file_name = author_name.lower() + "-" + project_name.lower() + ".xml"
+if not os.path.isfile(os.path.join(package_definitions_folder, conf.package_definitions_file_name)):
+    if os.path.isfile(os.path.join(package_definitions_folder, "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower()))):
+        conf.package_definitions_file_name = "{:s}-{:s}.xml".format(conf.author_name.lower(), conf.project_name.lower())
     else:
-        package_definitions_file_name = project_name.lower() + ".xml"
+        conf.package_definitions_file_name = conf.project_name.lower() + ".xml"
     
 # objects folder
-objects_folder = project_folder + "\\PackageSources\\modelLib\\"
+objects_folder = os.path.join(project_folder, "PackageSources", "modelLib")
 # scene folder
-scene_folder = project_folder + "\\PackageSources\\scene\\"
+scene_folder = os.path.join(project_folder, "PackageSources", "scene")
 # backup folder
-backup_folder = project_folder + "\\backup\\clean_package_files"
+backup_folder = os.path.join(project_folder, "backup", "clean_package_files")
 # backup fps_modelLib folder
-backup_modelLib_folder = backup_folder + "\\modelLib"
+backup_modelLib_folder = os.path.join(backup_folder, "modelLib")
 # backup scene folder
-backup_scene_folder = backup_folder + "\\scene"
+backup_scene_folder = os.path.join(backup_folder, "scene")
 
 
 ######################################################
@@ -116,29 +88,29 @@ def check_configuration():
     warning_msg = "Configuration warning ! "
     
     # check if the projects folder exists
-    if not os.path.isdir(projects_folder):
-        pr_ko_red   ("projects_folder value              ")
-        raise ScriptError(error_msg + "The folder containing your projects (" + projects_folder + ") was not found. Please check the projects_folder value")
-    pr_ok_green     ("projects_folder value              ")
+    if not os.path.isdir(conf.projects_folder):
+        pr_ko_red   ("conf.projects_folder value              ")
+        raise ScriptError(error_msg + "The folder containing your projects (" + conf.projects_folder + ") was not found. Please check the conf.projects_folder value")
+    pr_ok_green     ("conf.projects_folder value              ")
         
     # check the projects name
     if not os.path.isdir(project_folder):
-        pr_ko_red   ("project_name value                 ")
-        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the project_name value")
-    pr_ok_green     ("project_name value                 ")    
+        pr_ko_red   ("conf.project_name value                 ")
+        raise ScriptError(error_msg + "Project folder " + project_folder + " not found. Please check the conf.project_name value")
+    pr_ok_green     ("conf.project_name value                 ")    
              
     # check if the project file is reachable
-    if not os.path.isfile(project_folder + "\\" + project_file_name):
-        pr_ko_red   ("project_file_name value            ")
-        raise ScriptError(error_msg + "Project file (" + project_folder + "\\" + project_file_name + ") not found. Please check the project_file_name value")
-    pr_ok_green     ("project_file_name value            ")
+    if not os.path.isfile(os.path.join(project_folder, conf.project_file_name)):
+        pr_ko_red   ("conf.project_file_name value            ")
+        raise ScriptError(error_msg + "Project file (" + os.path.join(project_folder, conf.project_file_name) + ") not found. Please check the conf.project_file_name value")
+    pr_ok_green     ("conf.project_file_name value            ")
     
     # check if the fspackagetool.exe file is reachable
-    if not os.path.isfile(fspackagetool_folder + "\\" + MSFS_BUILD_EXE_FILE):
-        pr_ko_orange("fspackagetool_folder value         ")
-        build_package_enabled = False
+    if not os.path.isfile(os.path.join(conf.fspackagetool_folder, MSFS_BUILD_EXE_FILE)):
+        pr_ko_orange("conf.fspackagetool_folder value         ")
+        conf.build_package_enabled = False
         print(CORANGE + warning_msg + MSFS_BUILD_EXE_FILE + " bin file not found. Automatic package building disabled" + CEND + EOL)
-    pr_ok_green     ("fspackagetool_folder value         ")
+    pr_ok_green     ("conf.fspackagetool_folder value         ")
         
     # check if the package definitions folder exists
     if not os.path.isdir(package_definitions_folder):
@@ -147,10 +119,10 @@ def check_configuration():
     pr_ok_green     ("package_definitions_folder value   ")
     
     # check if the package definitions file name is reachable
-    if not os.path.isfile(package_definitions_folder + package_definitions_file_name):
-        pr_ko_red   ("package_definitions_file_name value")
-        raise ScriptError(error_msg + "Package definitions file (" + package_definitions_folder + package_definitions_file_name + ") not found. Please check the package_definitions_file_name value")
-    pr_ok_green     ("package_definitions_file_name value")
+    if not os.path.isfile(os.path.join(package_definitions_folder, conf.package_definitions_file_name)):
+        pr_ko_red   ("conf.package_definitions_file_name value")
+        raise ScriptError(error_msg + "Package definitions file (" + os.path.join(package_definitions_folder, conf.package_definitions_file_name) + ") not found. Please check the conf.package_definitions_file_name value")
+    pr_ok_green     ("conf.package_definitions_file_name value")
 
 def check_package_sources_configuration():
     error_msg = "Configuration error found ! "
@@ -168,10 +140,10 @@ def check_package_sources_configuration():
     pr_ok_green     ("scene_folder value                 ")
     
     # check if the description file of the scene is reachable
-    if not os.path.isfile(scene_folder + scene_file_name):
-        pr_ko_red   ("scene_file_name value              ")
-        raise ScriptError(error_msg + "Description file of the scene (" + scene_folder + scene_file_name + ") not found. Please check the scene_file_name value")
-    pr_ok_green     ("scene_file_name value              ")
+    if not os.path.isfile(os.path.join(scene_folder, conf.scene_file_name)):
+        pr_ko_red   ("conf.scene_file_name value              ")
+        raise ScriptError(error_msg + "Description file of the scene (" + os.path.join(scene_folder, conf.scene_file_name) + ") not found. Please check the conf.scene_file_name value")
+    pr_ok_green     ("conf.scene_file_name value              ")
         
     # check if the folder containing the textures of the scene exists
     if not os.path.isdir(textures_folder):
@@ -186,22 +158,22 @@ def backup_files():
     os.chdir(objects_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_modelLib_folder + "\\" + file_name):
+        if not os.path.isfile(os.path.join(backup_modelLib_folder, file_name)):
             print("backup file ", file_name)
-            shutil.copyfile(file, backup_modelLib_folder + "\\" + file_name)
+            shutil.copyfile(file, os.path.join(backup_modelLib_folder, file_name))
             
     os.chdir(textures_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_modelLib_folder + "\\texture\\" + file_name):
+        if not os.path.isfile(os.path.join(backup_modelLib_folder, "texture", file_name)):
             print("backup texture file ", file_name)
-            shutil.copyfile(file, backup_modelLib_folder + "\\texture\\" + file_name)
+            shutil.copyfile(file, os.path.join(backup_modelLib_folder, "texture", file_name))
             
     os.chdir(scene_folder)
     for file in glob.glob("*.*"):
         file_name = os.path.basename(file)
-        if not os.path.isfile(backup_scene_folder + "\\" + file_name):
-            shutil.copyfile(file, backup_scene_folder + "\\" + file_name)
+        if not os.path.isfile(os.path.join(backup_scene_folder,  file_name)):
+            shutil.copyfile(file, os.path.join(backup_scene_folder, file_name))
         
 ######################################################
 # File manipulation methods
@@ -363,9 +335,9 @@ def build_package():
     error_msg = "MSFS SDK tools not installed"
     
     try: 
-        os.chdir(fspackagetool_folder)
-        print("fspackagetool.exe \"" + project_folder + "\\" + project_file_name + "\" -outputdir \"" + project_folder)
-        subprocess.run("fspackagetool.exe \"" + project_folder + "\\" + project_file_name + "\" -outputdir \"" + project_folder, shell=True, check=True)
+        os.chdir(conf.fspackagetool_folder)
+        print("fspackagetool.exe \"" + os.path.join(project_folder, conf.project_file_name) + "\" -outputdir \"" + project_folder)
+        subprocess.run("fspackagetool.exe \"" + os.path.join(project_folder, conf.project_file_name) + "\" -outputdir \"" + project_folder, shell=True, check=True)
     except:
         raise ScriptError(error_msg)
         
@@ -381,14 +353,14 @@ try:
     # change modelib folder to fix CTD issues (see https://flightsim.to/blog/creators-guide-fix-ctd-issues-on-your-scenery/)
     os.chdir(project_folder)
     if os.path.isdir(objects_folder):
-        os.rename(objects_folder, project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib")
+        os.rename(objects_folder, os.path.join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
 
-    objects_folder = project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib\\"
+    objects_folder = os.path.join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")
     # fix package definitions
-    replace_in_file(package_definitions_folder + package_definitions_file_name, "PackageSources\\modelLib\\", "PackageSources\\" + project_name.lower() + "-modelLib\\")
+    replace_in_file(os.path.join(package_definitions_folder, conf.package_definitions_file_name), os.path.join("PackageSources", "modelLib"), os.path.join("PackageSources", conf.project_name.lower() + "-modelLib"))
 
     # textures folder
-    textures_folder = objects_folder + "texture\\"  
+    textures_folder = os.path.join(objects_folder, "texture")  
         
     check_package_sources_configuration()
 
@@ -399,29 +371,30 @@ try:
         os.mkdir(backup_scene_folder)    
     if not os.path.isdir(backup_modelLib_folder):
         os.mkdir(backup_modelLib_folder)
-    if not os.path.isdir(backup_modelLib_folder + "\\texture"):
-        os.mkdir(backup_modelLib_folder + "\\texture")
+    if not os.path.isdir(os.path.join(backup_modelLib_folder, "texture")):
+        os.mkdir(os.path.join(backup_modelLib_folder, "texture"))
     
     os.chdir(objects_folder)
  
-    if not os.path.isdir(project_folder + "\\PackageSources\\modelLib") and not os.path.isdir(project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib"):
-        print("The modelLib folder was not found for the projet", project_name, ". Please rename your modelLib folder like this:", project_folder + "\\PackageSources\\" + project_name.lower() + "-modelLib")
+    if not os.path.isdir(os.path.join(project_folder, "PackageSources", "modelLib")) and not os.path.isdir(os.path.join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib")):
+        print("The modelLib folder was not found for the projet", conf.project_name, ". Please rename your modelLib folder like this:", os.path.join(project_folder, "PackageSources", conf.project_name.lower() + "-modelLib"))
     else:    
-        print("-------------------------------------------------------------------------------")
-        print("--------------------------------- BACKUP FILES --------------------------------")
-        print("-------------------------------------------------------------------------------")
+        if conf.backup:
+            print("-------------------------------------------------------------------------------")
+            print("--------------------------------- BACKUP FILES --------------------------------")
+            print("-------------------------------------------------------------------------------")
 
-        backup_files()
+            backup_files()
     
         print("-------------------------------------------------------------------------------")
         print("----------------------------- CLEAN PACKAGE FILES -----------------------------")
         print("-------------------------------------------------------------------------------")
                 
-        objects_tree = ET.parse(scene_folder + scene_file_name)
+        objects_tree = ET.parse(os.path.join(scene_folder, conf.scene_file_name))
         clean_package_files(objects_tree)
         clean_unused_lod_package_files()
         
-        if build_package_enabled:
+        if conf.build_package_enabled:
             build_package()
     
     print(EOL)    
