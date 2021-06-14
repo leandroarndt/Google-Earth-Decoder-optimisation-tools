@@ -66,7 +66,7 @@ class Config(object):
         self.nb_parallel_tasks = 20
         
         # path to built textures subfolder
-        self.packages_textures_subfolders = os.path.join("Packages", conf.project_name, "scenery", "mycompany", "TEXTURE")
+        self.packages_textures_subfolders = os.path.join("Packages", self.project_name, "scenery", "mycompany", "TEXTURE")
 
 if not 'conf' in dir():
     conf = Config()

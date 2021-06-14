@@ -114,7 +114,7 @@ def check_packages_folder_configuration():
 # Backup the packages textures files before the conversion process
 ##################################################################      
 def backup_files():
-    os.chdir(conf.packages_textures_subfolders)
+    os.chdir(join(project_folder, conf.packages_textures_subfolders))
     for file in glob.glob(DDS_PATTERN):
         file_name = os.path.basename(file)
         if not os.path.isfile(join(backup_packages_textures_folder, file_name)):
@@ -130,7 +130,7 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def convert_dds_texture_files():
-    os.chdir(conf.packages_textures_subfolders)
+    os.chdir(join(project_folder, conf.packages_textures_subfolders))
     data = retrieve_texture_files_to_treat(DDS_PATTERN, DDS_EXTENSION, BMP_EXTENSION)
     do_convert_dds_texture_files(data)
     data = retrieve_texture_files_to_treat(BMP_PATTERN, BMP_EXTENSION, DDS_EXTENSION)
