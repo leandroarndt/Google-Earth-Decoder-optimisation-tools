@@ -37,7 +37,7 @@ conf.build_package_enabled = True
 # use with care
 conf.backup = True
 
-if not 'scenery_optimisation' in sys.modules:
+if not 'clean_package_files' in sys.modules:
     from earth2msfstools import clean_package_files
 else:
     reload(clean_package_files)
