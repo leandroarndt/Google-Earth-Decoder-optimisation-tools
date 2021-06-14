@@ -21,7 +21,6 @@ OK = "OK"
 KO = "KO"
 EOL = "\n"
 COMPRESSONATOR_EXE_FILE = "compressonatorcli.exe"
-PACKAGES_TEXTURES_SUBFOLDERS = join("scenery", "global", "scenery", "TEXTURE")
 BMP_FORMAT = "BMP"
 DDS_FORMAT = "DDS"
 BMP_EXTENSION = "." + BMP_FORMAT
@@ -49,8 +48,6 @@ project_folder = join(conf.projects_folder, conf.project_name)
         
 # built packages folder
 built_packages_folder = join(project_folder, "Packages")
-# built packages texture folder
-built_packages_textures_folder = join(built_packages_folder, conf.project_name.lower(), PACKAGES_TEXTURES_SUBFOLDERS)
 # backup folder
 backup_folder = join(project_folder, "backup")
 # backup packages texture folder
@@ -96,6 +93,7 @@ def check_configuration():
     if not os.path.isfile(join(conf.compressonatortool_folder, COMPRESSONATOR_EXE_FILE)):
         pr_ko_red("conf.compressonatortool_folder value     ")
         build_package_enabled = False
+        print(join(conf.compressonatortool_folder, COMPRESSONATOR_EXE_FILE))
         raise ScriptError(error_msg + COMPRESSONATOR_EXE_FILE + " bin file not found. DDS conversion disabled" + CEND + EOL)
     pr_ok_green     ("conf.compressonatortool_folder value     ")    
 
@@ -107,16 +105,16 @@ def check_packages_folder_configuration():
     error_msg = "Configuration error found ! "
     
     # check if the built packages textures folder exists
-    if not os.path.isdir(built_packages_textures_folder):        
+    if not os.path.isdir(conf.packages_textures_subfolders):        
         pr_ko_red   ("built_packages_textures folder value")
-        raise ScriptError(error_msg + "The folder containing the built packages textures of the project (" + built_packages_textures_folder + ") was not found. Please check the built_packages_textures_folder value")
+        raise ScriptError(error_msg + "The folder containing the built packages textures of the project (" + conf.packages_textures_subfolders + ") was not found. Please check the conf.packages_textures_subfolders value")
     pr_ok_green     ("built_packages_textures folder value")
         
 ##################################################################
 # Backup the packages textures files before the conversion process
 ##################################################################      
 def backup_files():
-    os.chdir(built_packages_textures_folder)
+    os.chdir(conf.packages_textures_subfolders)
     for file in glob.glob(DDS_PATTERN):
         file_name = os.path.basename(file)
         if not os.path.isfile(join(backup_packages_textures_folder, file_name)):
@@ -132,7 +130,7 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def convert_dds_texture_files():
-    os.chdir(built_packages_textures_folder)
+    os.chdir(conf.packages_textures_subfolders)
     data = retrieve_texture_files_to_treat(DDS_PATTERN, DDS_EXTENSION, BMP_EXTENSION)
     do_convert_dds_texture_files(data)
     data = retrieve_texture_files_to_treat(BMP_PATTERN, BMP_EXTENSION, DDS_EXTENSION)
@@ -227,8 +225,8 @@ def main():
 try:
     check_configuration()    
     
-    if not os.path.isdir(built_packages_textures_folder):
-        built_packages_textures_folder = join(built_packages_folder, conf.author_name.lower() + "-" + conf.project_name.lower(), PACKAGES_TEXTURES_SUBFOLDERS)
+    if not os.path.isdir(conf.packages_textures_subfolders):
+        conf.packages_textures_subfolders = join(built_packages_folder, conf.author_name.lower() + "-" + conf.project_name.lower(), conf.packages_textures_subfolders)
     
     check_packages_folder_configuration()
 

@@ -1,4 +1,5 @@
 import sys
+from os.path import join
 
 # Path to where you extracted the Google-Earth-Decoder-optimisation-tools package:
 sys.path.append("""C:\Path\To\Google-Earth-Decoder-optimisation-tools""")
@@ -18,10 +19,13 @@ conf.project_name = "project-name"
 conf.author_name = "authorname"
 
 # folder that contains the compressonator exe that converts dds files
-compressonatortool_folder = "compressonator_folder"
+conf.compressonatortool_folder = "compressonator_folder"
 
 # number of compressonator tasks running at the same time
-nb_parallel_tasks = 20
+conf.nb_parallel_tasks = 20
+
+# path to built textures subfolder
+conf.packages_textures_subfolders = join("Packages", conf.project_name, "scenery", "mycompany", "TEXTURE")
 
 if not 'compress_built_package' in sys.modules:
     from earth2msfstools import compress_built_package

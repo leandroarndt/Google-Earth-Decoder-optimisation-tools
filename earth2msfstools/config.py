@@ -59,9 +59,14 @@ class Config(object):
         self.src_package_definitions_file_name = "{:s}-{:s}.xml".format(self.author_name, self.src_project_name)
         
         # ***************** texture compression specific options *****************
+        # folder that contains the compressonator exe that converts dds files
+        self.compressonatortool_folder = "compressonator_folder"
+        
         # number of compressonator tasks running at the same time
         self.nb_parallel_tasks = 20
-
+        
+        # path to built textures subfolder
+        self.packages_textures_subfolders = join("Packages", conf.project_name, "scenery", "mycompany", "TEXTURE")
 
 if not 'conf' in dir():
     conf = Config()
