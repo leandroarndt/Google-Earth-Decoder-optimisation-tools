@@ -42,13 +42,10 @@ author_name = "author_name"
 
 #######################****************###########################
 
-import sys, bpy, glob, os, shutil, json, uuid, mathutils, math, subprocess
-from math import radians, cos, sin, asin, sqrt
+import sys, glob, os, shutil, subprocess
 from xml.dom.minidom import *
-from mathutils import Vector 
 from xml.dom.minidom import *
 from os.path import dirname, join, normpath
-from bpy.app import binary_path_python
 import xml.etree.ElementTree as ET
 
 class ScriptError(Exception):      
