@@ -63,8 +63,8 @@ if not os.path.isfile(os.path.join(src_package_definitions_folder, conf.src_pack
     else:
         conf.src_package_definitions_file_name = conf.src_project_name.lower() + ".xml"
 
-if not os.path.isfile(os.path.join(dest_package_definitions_folder + conf.package_definitions_file_name)):
-    if os.path.isfile(os.path.join(dest_package_definitions_folder + '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
+if not os.path.isfile(os.path.join(dest_package_definitions_folder, conf.package_definitions_file_name)):
+    if os.path.isfile(os.path.join(dest_package_definitions_folder, '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower()))):
         conf.package_definitions_file_name = '{author_name:s}-{project_name:s}.xml'.format(author_name=conf.author_name.lower(), project_name=conf.project_name.lower())
     else:
         conf.package_definitions_file_name = conf.project_name.lower() + ".xml"
@@ -153,13 +153,13 @@ def check_configuration():
     pr_ok_green     ("dest_package_definitions_folder value   ")
 
     # check if the package definitions file names are reachable
-    if not os.path.isfile(src_package_definitions_folder + conf.src_package_definitions_file_name):
+    if not os.path.isfile(os.path.join(src_package_definitions_folder, conf.src_package_definitions_file_name)):
         pr_ko_red   ("conf.src_package_definitions_file_name value ")
-        raise ScriptError(error_msg + "Source package definitions file (" + src_package_definitions_folder + conf.src_package_definitions_file_name + ") not found. Please check the conf.src_package_definitions_file_name value")
+        raise ScriptError(error_msg + "Source package definitions file (" + os.path.join(src_package_definitions_folder, conf.src_package_definitions_file_name) + ") not found. Please check the conf.src_package_definitions_file_name value")
     pr_ok_green     ("conf.src_package_definitions_file_name value ")
-    if not os.path.isfile(dest_package_definitions_folder + conf.package_definitions_file_name):
+    if not os.path.isfile(os.path.join(dest_package_definitions_folder, conf.package_definitions_file_name)):
         pr_ko_red   ("conf.package_definitions_file_name value")
-        raise ScriptError(error_msg + "Destination package definitions file (" + dest_package_definitions_folder + conf.package_definitions_file_name + ") not found. Please check the conf.package_definitions_file_name value")
+        raise ScriptError(error_msg + "Destination package definitions file (" + os.path.join(dest_package_definitions_folder, conf.package_definitions_file_name) + ") not found. Please check the conf.package_definitions_file_name value")
     pr_ok_green     ("conf.package_definitions_file_name value")
 
 def check_package_sources_configuration():
@@ -186,13 +186,13 @@ def check_package_sources_configuration():
     pr_ok_green     ("dest_scene_folder value                 ")
 
     # check if the description file of the scene is reachable
-    if not os.path.isfile(src_scene_folder + conf.src_scene_file_name):
+    if not os.path.isfile(os.path.join(src_scene_folder, conf.src_scene_file_name)):
         pr_ko_red   ("conf.src_scene_file_name value               ")
-        raise ScriptError(error_msg + "Description file of the source scene (" + src_scene_folder + conf.src_scene_file_name + ") not found. Please check the conf.src_scene_file_name value")
+        raise ScriptError(error_msg + "Description file of the source scene (" + os.path.join(src_scene_folder, conf.src_scene_file_name) + ") not found. Please check the conf.src_scene_file_name value")
     pr_ok_green     ("conf.src_scene_file_name value               ")
-    if not os.path.isfile(dest_scene_folder + conf.scene_file_name):
+    if not os.path.isfile(os.path.join(dest_scene_folder, conf.scene_file_name)):
         pr_ko_red   ("conf.scene_file_name value              ")
-        raise ScriptError(error_msg + "Description file of the destination scene (" + dest_scene_folder + conf.scene_file_name + ") not found. Please check the conf.scene_file_name value")
+        raise ScriptError(error_msg + "Description file of the destination scene (" + os.path.join(dest_scene_folder, conf.scene_file_name) + ") not found. Please check the conf.scene_file_name value")
     pr_ok_green     ("conf.scene_file_name value              ")
 
     # check if the folders containing the textures of the scene exist
@@ -319,26 +319,26 @@ def update_dest_scene_file():
     os.chdir(src_objects_folder)
     for file in glob.glob("*.xml"):
         file_name = os.path.basename(file)
-        print(src_objects_folder + file_name)
+        print(os.path.join(src_objects_folder, file_name))
         parser = ET.XMLParser(encoding='utf-8')
         tree = ET.parse(file, parser=parser)
         root = tree.getroot()
         new_guid  = root.get("guid")
         add_guid = False
 
-        dest_objects_tree = ET.parse(dest_scene_folder + conf.scene_file_name)
+        dest_objects_tree = ET.parse(os.path.join(dest_scene_folder, conf.scene_file_name))
         dest_objects_root = dest_objects_tree.getroot()
 
-        src_objects_tree = ET.parse(src_scene_folder + conf.src_scene_file_name)
+        src_objects_tree = ET.parse(os.path.join(src_scene_folder, conf.src_scene_file_name))
         src_objects_root = src_objects_tree.getroot()
 
-        if not os.path.isfile(dest_objects_folder + file_name):
+        if not os.path.isfile(os.path.join(dest_objects_folder, file_name)):
             add_guid = True
 
         if not add_guid:
             guid_found = False
-            print(dest_objects_folder + file_name)
-            dest_tree = ET.parse(dest_objects_folder + file_name)
+            print(os.path.join(dest_objects_folder, file_name))
+            dest_tree = ET.parse(os.path.join(dest_objects_folder, file_name))
             dest_root = dest_tree.getroot()
             guid  = dest_root.get("guid")
 
@@ -371,9 +371,9 @@ def update_dest_scene_file():
                 dest_objects_root.append(src_scenery_object)
 
 
-        dest_objects_tree.write(dest_scene_folder + conf.scene_file_name)
+        dest_objects_tree.write(os.path.join(dest_scene_folder, conf.scene_file_name))
         prettyPrint(element=dest_objects_root)
-        line_prepender(dest_scene_folder + conf.scene_file_name, '<?xml version="1.0"?>')
+        line_prepender(os.path.join(dest_scene_folder, conf.scene_file_name), '<?xml version="1.0"?>')
 
 ######################################################
 # build merged scenery into new MSFS package
