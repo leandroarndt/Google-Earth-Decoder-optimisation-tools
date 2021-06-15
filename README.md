@@ -198,9 +198,10 @@ Change the following settings, according to your project:
 
 ### 6.4) Usage
 
-Open Blender **in administrator mode**.
-Go in the Scripting view, then click on the Open icon, and choose the update_object_LODs python script.
+Copy "merge sceneries.py" to the folder of your choice and change settings as needed. If using Blender,
+go in the Scripting view, then click on the Open icon, and choose the update_object_LODs python script.
 When the configuration is done, open the Blender system console Window (Window => Toggle System Console). Then, run the script.
+If using a common Python 3 interpreter, run the copied script.
 
 ### 6.5) Process
 
@@ -237,9 +238,9 @@ Change the following settings, according to your project:
 
 ### 7.4) Usage
 
-Open Blender**in administrator mode**.
-Go in the Scripting view, then click on the Open icon, and choose the clean_package_files python script.
-When the configuration is done, open the Blender system console Window (Window => Toggle System Console). Then, run the script.
+Copy "clean package files.py" to the folder of your choice. If using Blender, go in the Scripting view, then click on the Open icon, and choose the copied python script.
+When the configuration is done, open the Blender system console Window (Window => Toggle System Console). Then, run the script. If using common Python 3 interpreter,
+edit the copied file and run it.
 
 ### 7.5) Process
 
@@ -269,16 +270,16 @@ First, install the compressonator tool in the folder of your choice. Then, put t
 Change the following settings, according to your project:
 
 * **projects_folder**: the parent folder that contains your sceneries
-project_name: the name of your project
+* **project_name**: the name of your project
 * **compressonatortool_folder**: the folder that contains the compressonator exe (compressonatorcli.exe) that convert and compress the DDS texture files of the packages. This exe shoud be in the <path_to_compressonator\bin\cli> folder
 * **author_name**: the name of the author of the scenery
-* **NB_PARALLEL_TASKS**: number of parallel instance of compressonator running at the same time. If you experiment issues running the script, try lowering this setting
+* **nb_parallel_tasks**: number of parallel instance of compressonator running at the same time. If you experiment issues running the script, try lowering this setting
 
 ### 8.5) Usage
 
-Open Blender in administrator mode.
-Go in the Scripting view, then click on the Open icon, and choose the clean_package_files python script.
-When the configuration is done, open the Blender system console Window (Window => Toggle System Console). Then, run the script.
+Copy "clean package files.py" to the folder of your choice. If using blender, go in the Scripting view, then click on the Open icon, and choose the copied file.
+When the configuration is done, open the Blender system console Window (Window => Toggle System Console). Then, run the script. If using a common Python 3 interpreter,
+edit the copied file and run it.
 
 ### 8.6) Process
 
