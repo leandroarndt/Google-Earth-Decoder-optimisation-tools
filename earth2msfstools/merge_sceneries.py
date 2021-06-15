@@ -1,6 +1,4 @@
-import sys, glob, os, shutil, json, uuid, math, subprocess
-from math import radians, cos, sin, asin, sqrt
-from xml.dom.minidom import *
+import glob, os, shutil, subprocess
 from xml.dom.minidom import *
 import xml.etree.ElementTree as ET
 from .config import conf
